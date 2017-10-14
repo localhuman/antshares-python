@@ -379,7 +379,14 @@ class UserWallet(Wallet):
         jsn = {}
         jsn['path'] = self._path
 
-        addresses = [Crypto.ToAddress(UInt160(data=addr.ScriptHash)) for addr in Address.select()]
+        addresses = []
+        for addr in Address.select():
+#            print("Script hash %s %s" % (addr.ScriptHash, type(addr.ScriptHash)))
+            acct = Blockchain.Default().GetAccountState(Crypto.ToAddress(UInt160(data=addr.ScriptHash)))
+            addresses.append( acct.ToJson())
+#            print("account: %s " % acct)
+
+#        addresses = [Crypto.ToAddress(UInt160(data=addr.ScriptHash)) for addr in Address.select()]
 
         balances = []
         for asset in assets:
