@@ -343,16 +343,13 @@ class UserWallet(Wallet):
             try:
                 c = Coin.get(TxId=bytes(coin.Reference.PrevHash.Data), Index=coin.Reference.PrevIndex)
                 c.delete_instance()
-                print("deleted coin!!!")
             except Exception as e:
                 print("Couldnt delete coin %s %s " % (e, coin))
                 self.__log.debug("could not delete coin %s %s " % (coin, e))
 
 
-        print("script hash %s %s " % ( script_hash, type(script_hash)))
-
         todelete = bytes(script_hash.ToArray())
-        print("to delete: %s " % todelete)
+
         for c in Contract.select():
 
             address = c.Address
@@ -360,19 +357,14 @@ class UserWallet(Wallet):
 
                 c.delete_instance()
                 address.delete_instance()
-                print("deleting contract!!!")
-#            print("SCRIPT HASH %s " % c.ScriptHash)
-#            if c.ScriptHash == todelete:
-#                c.delete_instance()
-#        contract = Contract.get(ScriptHash=bytes(script_hash.ToArray()))
-#        print("contract to delete %s " % contract)
-#        contract.delete_instance()
+
         try:
             address = Address.get(ScriptHash = todelete)
             address.delete_instance()
         except Exception as e:
             pass
 
+        print("Deleted address %s " % script_hash)
         return True,coins_toremove
 
 
@@ -388,10 +380,17 @@ class UserWallet(Wallet):
         jsn['path'] = self._path
 
         addresses = [Crypto.ToAddress(UInt160(data=addr.ScriptHash)) for addr in Address.select()]
+
+        balances = []
+        for asset in assets:
+            bc_asset = Blockchain.Default().GetAssetState(asset.ToBytes())
+            total = self.GetBalance(asset).value / Fixed8.D
+            balances.append("[%s]: %s " % (bc_asset.GetName(), total))
+
         jsn['addresses'] = addresses
         jsn['height'] = self._current_height
         jsn['percent_synced'] = percent_synced
-        jsn['balances'] = ["%s : %s " % (asset.ToString(), self.GetBalance(asset).value / Fixed8.D) for asset in assets]
+        jsn['balances'] = balances
         jsn['public_keys'] = self.PubKeys()
 
         if verbose:

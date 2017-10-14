@@ -53,7 +53,7 @@ def construct_and_send(prompter, wallet, arguments):
 
         output = TransactionOutput(AssetId=assetId, Value=f8amount, script_hash=scripthash)
         tx = ContractTransaction(outputs=[output])
-        ttx = wallet.MakeTransaction(tx=tx, change_address=None, fee=Fixed8.One())
+        ttx = wallet.MakeTransaction(tx=tx, change_address=None, fee=fee)
 
         if ttx is None:
             print("insufficient funds")
@@ -72,9 +72,7 @@ def construct_and_send(prompter, wallet, arguments):
             return
 
         standard_contract = wallet.GetChangeAddress()
-#        print("standard contract %s " % standard_contract)
         data = standard_contract.Data
-#        print("public key hash is %s " % data)
         tx.Attributes = [TransactionAttribute(usage=TransactionAttributeUsage.Script,
                                               data=data)]
 
@@ -89,11 +87,9 @@ def construct_and_send(prompter, wallet, arguments):
 
             wallet.SaveTransaction(tx)
 
-
-            print("will send tx: %s " % json.dumps(tx.ToJson(),indent=4))
+#            print("will send tx: %s " % json.dumps(tx.ToJson(),indent=4))
 
             relayed = NodeLeader.Instance().Relay(tx)
-
 
             if relayed:
                 print("Relayed Tx: %s " % tx.Hash.ToString())
