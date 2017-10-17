@@ -288,11 +288,14 @@ class PromptInterface(object):
         return
 
 
+<<<<<<< HEAD
     def do_build(self, arguments):
         BuildAndRun(arguments, self.Wallet)
 
     def do_load_n_run(self, arguments):
         LoadAndRun(arguments, self.Wallet)
+=======
+>>>>>>> master
 
     def do_export(self, arguments):
         item = get_arg(arguments)
