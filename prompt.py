@@ -31,7 +31,7 @@ from neo.Prompt.Commands.LoadSmartContract import LoadContract, GatherContractDe
     ImportMultiSigContractAddr
 from neo.Prompt.Commands.Send import construct_and_send, parse_and_sign
 from neo.Prompt.Commands.Tokens import token_approve_allowance, token_get_allowance, token_send, token_send_from, token_mint, token_crowdsale_register
-from neo.Prompt.Commands.Wallet import DeleteAddress, ImportWatchAddr, ImportToken, ClaimGas, DeleteToken,RunCustomVerification
+from neo.Prompt.Commands.Wallet import DeleteAddress, ImportWatchAddr, ImportToken, ClaimGas, DeleteToken, RunCustomVerification
 from neo.Prompt.Commands.Withdraw import RequestWithdraw, RedeemWithdraw
 from neo.Prompt.Utils import get_arg
 from neo.Settings import settings, DIR_PROJECT_ROOT
@@ -426,9 +426,8 @@ class PromptInterface(object):
         elif item == 'tkn_register':
             token_crowdsale_register(self.Wallet, arguments[1:])
 
-        elif item == 'cv': # custom verification
+        elif item == 'cv':  # custom verification
             RunCustomVerification(self.Wallet, arguments[1:])
-
 
     def do_send(self, arguments):
         construct_and_send(self, self.Wallet, arguments)

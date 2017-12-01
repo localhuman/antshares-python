@@ -551,8 +551,6 @@ def descripe_contract(contract):
     print("invoking contract - %s" % contract.Name.decode('utf-8'))
 
 
-
-
 def InvokeWithCustomVerificationScript(wallet, tx, contract_hash, fee=Fixed8.Zero()):
 
     wallet_tx = wallet.MakeTransaction(tx=tx, fee=fee, use_standard=True)
@@ -561,7 +559,6 @@ def InvokeWithCustomVerificationScript(wallet, tx, contract_hash, fee=Fixed8.Zer
 
         contract_state = Blockchain.Default().GetContract(contract_hash)
         print("contract  %s " % contract_state)
-
 
         shash = contract_state.Code.ScriptHash()
 

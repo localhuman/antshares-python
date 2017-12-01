@@ -5,7 +5,7 @@ from neo.Core.TX.Transaction import TransactionOutput
 from neo.SmartContract.ContractParameterContext import ContractParametersContext
 from neo.Network.NodeLeader import NodeLeader
 from neo.Prompt.Utils import string_from_fixed8
-from neo.Prompt.Commands.Invoke import TestInvokeContract,InvokeWithCustomVerificationScript
+from neo.Prompt.Commands.Invoke import TestInvokeContract, InvokeWithCustomVerificationScript
 from neo.Fixed8 import Fixed8
 from prompt_toolkit import prompt
 import binascii
@@ -155,7 +155,7 @@ def RunCustomVerification(wallet, args, prompt_passwd=True):
 
     if results[0].GetBigInteger() > 0:
         print("\n-----------------------------------------------------------")
-        print("[%s] Will run contract hash verification" % contract_hash )
+        print("[%s] Will run contract hash verification" % contract_hash)
         print("Fee: %s " % (fee.value / Fixed8.D))
         print("-------------------------------------------------------------\n")
 
@@ -166,6 +166,4 @@ def RunCustomVerification(wallet, args, prompt_passwd=True):
                 print("incorrect password")
                 return
 
-        return InvokeWithCustomVerificationScript(wallet, tx, contract_hash )
-
-
+        return InvokeWithCustomVerificationScript(wallet, tx, contract_hash)
