@@ -5,6 +5,7 @@ from neo.Core.TX.Transaction import TransactionOutput
 from neo.SmartContract.ContractParameterContext import ContractParametersContext
 from neo.Network.NodeLeader import NodeLeader
 from neo.Prompt.Utils import string_from_fixed8
+from neo.Prompt.Commands.Invoke import TestInvokeContract,InvokeWithCustomVerificationScript
 from neo.Fixed8 import Fixed8
 from prompt_toolkit import prompt
 import binascii
@@ -143,3 +144,28 @@ def ClaimGas(wallet, require_password=True):
         print("could not sign tx")
 
     return None, False
+
+
+def RunCustomVerification(wallet, args, prompt_passwd=True):
+
+    tx, fee, results, num_ops = TestInvokeContract(wallet, args)
+    contract_hash = args[0]
+
+    print("run custom verification %s %s" % (tx, contract_hash))
+
+    if results[0].GetBigInteger() > 0:
+        print("\n-----------------------------------------------------------")
+        print("[%s] Will run contract hash verification" % contract_hash )
+        print("Fee: %s " % (fee.value / Fixed8.D))
+        print("-------------------------------------------------------------\n")
+
+        if prompt_passwd:
+            passwd = prompt("[Password]> ", is_password=True)
+
+            if not wallet.ValidatePassword(passwd):
+                print("incorrect password")
+                return
+
+        return InvokeWithCustomVerificationScript(wallet, tx, contract_hash )
+
+

@@ -549,3 +549,67 @@ def test_deploy_and_invoke(deploy_script, invoke_args, wallet):
 
 def descripe_contract(contract):
     print("invoking contract - %s" % contract.Name.decode('utf-8'))
+
+
+
+
+def InvokeWithCustomVerificationScript(wallet, tx, contract_hash, fee=Fixed8.Zero()):
+
+    wallet_tx = wallet.MakeTransaction(tx=tx, fee=fee, use_standard=True)
+
+    if wallet_tx:
+
+        contract_state = Blockchain.Default().GetContract(contract_hash)
+        print("contract  %s " % contract_state)
+
+
+        shash = contract_state.Code.ScriptHash()
+
+        tx.Attributes = [
+            TransactionAttribute(usage=TransactionAttributeUsage.Script,
+                                 data=shash.Data)
+        ]
+
+        reedeem_script = contract_state.Code.Script.hex()
+
+        # there has to be at least 1 param, and the first
+        # one needs to be a signature param
+        param_list = bytearray(b'\x00\x05')
+
+        verification_contract = Contract.Create(reedeem_script, param_list, wallet.GetDefaultContract().PublicKeyHash)
+
+        context = ContractParametersContext(wallet_tx)
+
+        wallet.Sign(context)
+
+        context.Add(verification_contract, 0, bytearray(b'\x00\x01\x02\x03\x04'))
+
+        if context.Completed:
+
+            wallet_tx.scripts = context.GetScripts()
+
+            relayed = False
+
+            print("full wallet tx: %s " % json.dumps(wallet_tx.ToJson(), indent=4))
+
+            # check if we can save the tx first
+            save_tx = wallet.SaveTransaction(wallet_tx)
+
+            if save_tx:
+                relayed = NodeLeader.Instance().Relay(wallet_tx)
+            else:
+                print("Could not save tx to wallet, will not send tx")
+
+            if relayed:
+                print("Relayed Tx: %s " % wallet_tx.Hash.ToString())
+                return wallet_tx
+            else:
+                print("Could not relay tx %s " % wallet_tx.Hash.ToString())
+        else:
+
+            print("Incomplete signature")
+
+    else:
+        print("Insufficient funds")
+
+    return False
