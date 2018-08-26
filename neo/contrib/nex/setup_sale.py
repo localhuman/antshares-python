@@ -20,6 +20,7 @@ import os
 import binascii
 import json
 
+FEE = Fixed8.FromDecimal(.000001)
 
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""
@@ -36,21 +37,24 @@ class SaleMonitor:
 
 def setupSale(wallet, args):
 
-    contract = BC().GetContract(args[0])
+    contract_hash = UInt160.ParseString(args[0])
 
-    smart_contract = SmartContract(contract.Code.ScriptHash().ToString())
+    contract = BC().GetContract(contract_hash.ToString())
+    smart_contract = SmartContract(contract_hash.ToString())
 
     @smart_contract.on_notify
     def sc_notify(event):
         # Make sure that the event payload list has at least one element.
         items = event.event_payload.Value
+        if event.contract_hash != contract_hash:
+            return
+
         if not len(items):
             return
 
 
         if event.notify_type == b'kyc_registration':
             registered = items[1].Value
-            print("registered %s " % registered)
             uint = UInt160(data=registered)
             registered_addr = Crypto.ToAddress(uint)
             SaleMonitor.REGISTERED.append(registered_addr)
@@ -60,12 +64,11 @@ def setupSale(wallet, args):
                 logger.info("Registrations complete!")
         else:
             print("event type not kyc registration %s " % event.notify_type)
+
     file_name = args[1]
     roundNo = args[2]
     perTX = int(args[3])
-    print("file name %s " % file_name)
     file = open(file_name, 'r')
-    print("file %s " % file)
     address_list = json.load(file)
 
     logger.info("round: %s %s" % (roundNo, perTX))
@@ -78,6 +81,8 @@ def setupSale(wallet, args):
     for addrlist in divided_in_chunks:
         tx = make_tx(addrlist, roundNo, contract, wallet)
         txns.append(tx)
+
+    logger.info("total tx: %s " % len(txns))
 
     def send_things():
         mcount = 0
@@ -96,7 +101,7 @@ def make_tx(addrlist, roundNo, contract, wallet):
     sb = ScriptBuilder()
 
     for addr in addrlist:
-        print("address %s " % addr)
+#        print("address %s " % addr)
         addr_hash = Helper.AddrStrToScriptHash(addr).Data
         sb.push(addr_hash)
     sb.push(len(addrlist))
@@ -113,14 +118,14 @@ def make_tx(addrlist, roundNo, contract, wallet):
     tx.Script = binascii.unhexlify(script)
     tx.Gas = Fixed8.Zero()
 
-    attr = bytearray(os.urandom(20))
-    tx.Attributes = [TransactionAttribute(usage=TransactionAttributeUsage.Remark4, data=attr)]
+    tx = wallet.MakeTransaction(tx, fee=FEE)
 
     contract = wallet.GetDefaultContract()
-    tx.Attributes.append(TransactionAttribute(usage=TransactionAttributeUsage.Script, data=contract.ScriptHash))
+    tx.Attributes= [TransactionAttribute(usage=TransactionAttributeUsage.Script, data=contract.ScriptHash)]
 
     context = ContractParametersContext(tx)
     wallet.Sign(context)
     tx.scripts = context.GetScripts()
+    wallet.SaveTransaction(tx)
 
     return tx

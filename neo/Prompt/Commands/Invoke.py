@@ -51,10 +51,16 @@ def InvokeContract(wallet, tx, fee=Fixed8.Zero(), from_addr=None, owners=None):
 
     if wallet_tx:
 
+        if owners:
+            for owner in list(owners):
+                wallet_tx.Attributes.append(TransactionAttribute(usage=TransactionAttributeUsage.Script, data=owner))
+            wallet_tx.Attributes = make_unique_script_attr(tx.Attributes)
+
         context = ContractParametersContext(wallet_tx)
         wallet.Sign(context)
 
         if owners:
+            print("GATHERING INVOKE SIGS")
             gather_signatures(context, wallet_tx, list(owners))
 
         if context.Completed:
@@ -307,7 +313,6 @@ def test_invoke(script, wallet, outputs, withdrawal_tx=None,
     if owners:
         owners = list(owners)
         for owner in owners:
-            #            print("contract %s %s" % (wallet.GetDefaultContract().ScriptHash, owner))
             if wallet.GetDefaultContract().ScriptHash != owner:
                 wallet_tx.Attributes.append(TransactionAttribute(usage=TransactionAttributeUsage.Script, data=owner))
                 wallet_tx.Attributes = make_unique_script_attr(tx.Attributes)
@@ -365,6 +370,7 @@ def test_invoke(script, wallet, outputs, withdrawal_tx=None,
             wallet_tx.Gas = tx_gas
             # reset the wallet outputs
             wallet_tx.outputs = outputs
+
             wallet_tx.Attributes = [] if invoke_attrs is None else deepcopy(invoke_attrs)
 
             return wallet_tx, net_fee, engine.EvaluationStack.Items, engine.ops_processed
@@ -538,7 +544,7 @@ def test_deploy_and_invoke(deploy_script, invoke_args, wallet,
             owners = list(owners)
             for owner in owners:
                 itx.Attributes.append(TransactionAttribute(usage=TransactionAttributeUsage.Script, data=owner))
-                itx.Attributes = make_unique_script_attr(itx.Attributes)
+#                itx.Attributes = make_unique_script_attr(itx.Attributes)
             context = ContractParametersContext(itx, isMultiSig=True)
 
         if context.Completed:
