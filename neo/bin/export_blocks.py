@@ -6,7 +6,7 @@ from neo.Core.Blockchain import Blockchain
 import argparse
 from tqdm import trange
 import binascii
-
+from neo.Core.Helper import Helper
 
 def main():
     parser = argparse.ArgumentParser()
@@ -67,7 +67,11 @@ def main():
 
             block = chain.GetBlockByHeight(index)
             block.LoadTransactions()
-            output = binascii.unhexlify(block.ToArray())
+
+#            output = binascii.unhexlify(block.ToArray())
+            # this saves a hex then unhex conversion
+            output = Helper.ToStream(block)
+
             output_length = len(output).to_bytes(4, 'little')
             file_out.write(output_length)
             file_out.write(output)

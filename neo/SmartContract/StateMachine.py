@@ -113,7 +113,7 @@ class StateMachine(StateReader):
                 asset_type == AssetType.UtilityToken:
             return False
 
-        if len(engine.EvaluationStack.Peek().GetByteArray()) > 1024:
+        if len(engine.EvaluationStack.PeekLast().GetByteArray()) > 1024:
             return False
 
         name = engine.EvaluationStack.Pop().GetByteArray().decode('utf-8')
@@ -216,24 +216,24 @@ class StateMachine(StateReader):
 
         contract_properties = int(engine.EvaluationStack.Pop().GetBigInteger())
 
-        if len(engine.EvaluationStack.Peek().GetByteArray()) > 252:
+        if len(engine.EvaluationStack.PeekLast().GetByteArray()) > 252:
             return False
 
         name = engine.EvaluationStack.Pop().GetByteArray()
 
-        if len(engine.EvaluationStack.Peek().GetByteArray()) > 252:
+        if len(engine.EvaluationStack.PeekLast().GetByteArray()) > 252:
             return False
         code_version = engine.EvaluationStack.Pop().GetByteArray()
 
-        if len(engine.EvaluationStack.Peek().GetByteArray()) > 252:
+        if len(engine.EvaluationStack.PeekLast().GetByteArray()) > 252:
             return False
         author = engine.EvaluationStack.Pop().GetByteArray()
 
-        if len(engine.EvaluationStack.Peek().GetByteArray()) > 252:
+        if len(engine.EvaluationStack.PeekLast().GetByteArray()) > 252:
             return False
         email = engine.EvaluationStack.Pop().GetByteArray()
 
-        if len(engine.EvaluationStack.Peek().GetByteArray()) > 65536:
+        if len(engine.EvaluationStack.PeekLast().GetByteArray()) > 65536:
             return False
 
         description = engine.EvaluationStack.Pop().GetByteArray()
@@ -276,24 +276,24 @@ class StateMachine(StateReader):
 
         contract_properties = engine.EvaluationStack.Pop().GetBigInteger()
 
-        if len(engine.EvaluationStack.Peek().GetByteArray()) > 252:
+        if len(engine.EvaluationStack.PeekLast().GetByteArray()) > 252:
             return False
 
         name = engine.EvaluationStack.Pop().GetByteArray().decode('utf-8')
 
-        if len(engine.EvaluationStack.Peek().GetByteArray()) > 252:
+        if len(engine.EvaluationStack.PeekLast().GetByteArray()) > 252:
             return False
         version = engine.EvaluationStack.Pop().GetByteArray().decode('utf-8')
 
-        if len(engine.EvaluationStack.Peek().GetByteArray()) > 252:
+        if len(engine.EvaluationStack.PeekLast().GetByteArray()) > 252:
             return False
         author = engine.EvaluationStack.Pop().GetByteArray().decode('utf-8')
 
-        if len(engine.EvaluationStack.Peek().GetByteArray()) > 252:
+        if len(engine.EvaluationStack.PeekLast().GetByteArray()) > 252:
             return False
         email = engine.EvaluationStack.Pop().GetByteArray().decode('utf-8')
 
-        if len(engine.EvaluationStack.Peek().GetByteArray()) > 65536:
+        if len(engine.EvaluationStack.PeekLast().GetByteArray()) > 65536:
             return False
         description = engine.EvaluationStack.Pop().GetByteArray().decode('utf-8')
 

@@ -13,7 +13,8 @@ from neo.Core.Witness import Witness
 from neocore.Fixed8 import Fixed8
 from neo.Blockchain import GetBlockchain
 from neo.Core.Size import GetVarSize
-
+from neo.Core.TX.MinerTransaction import MinerTransaction
+from neocore.UInt256 import UInt256
 
 class Block(BlockBase, InventoryMixin):
     #  < summary >
@@ -150,6 +151,33 @@ class Block(BlockBase, InventoryMixin):
         """
         transactions = self.FullTransactions
         return transactions
+
+    def DeserializeForImport(self, reader):
+        """
+        Deserialize full object.
+
+        Args:
+            reader (neo.IO.BinaryReader):
+        """
+        super(Block, self).Deserialize(reader)
+
+        self.Transactions = []
+        transaction_length = reader.ReadVarInt()
+
+        if transaction_length < 1:
+
+            if self.Index == 1413807:
+                print("adding missing miner tx")
+                miner = MinerTransaction()
+                miner.__hash = UInt256.ParseString('23fc7778ddb32d5f1d9cc565c848a3d58e1e7d1c1dc300a9d19e9952ad739b9e')
+                miner.Nonce = 3872783724
+                self.Transactions = [miner]
+                return
+            raise Exception('Invalid format %s ' % self.Index)
+
+        for i in range(0, transaction_length):
+            tx = Transaction.DeserializeFrom(reader)
+            self.Transactions.append(tx)
 
     def Deserialize(self, reader):
         """

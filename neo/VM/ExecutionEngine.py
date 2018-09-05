@@ -77,7 +77,7 @@ class ExecutionEngine:
 
     @property
     def CurrentContext(self):
-        return self._InvocationStack.Peek()
+        return self._InvocationStack.PeekLast()
 
     @property
     def CallingContext(self):
@@ -192,7 +192,7 @@ class ExecutionEngine:
                 istack.PushT(context.Clone())
                 context.SetInstructionPointer(context.InstructionPointer + 2)
 
-                self.ExecuteOp(JMP, self.CurrentContext)
+                self.ExecuteOp(JMP, context)
 
             elif opcode == RET:
                 istack.Pop().Dispose()
@@ -216,7 +216,6 @@ class ExecutionEngine:
                 script = self._Table.GetScript(UInt160(data=script_hash).ToBytes())
 
                 if script is None:
-                    logger.error("Could not find script from script table: %s " % script_hash)
                     return self.VM_FAULT_and_report(VMFault.INVALID_CONTRACT, script_hash)
 
                 if opcode == TAILCALL:
@@ -232,7 +231,7 @@ class ExecutionEngine:
 
             # stack operations
             elif opcode == DUPFROMALTSTACK:
-                estack.PushT(astack.Peek())
+                estack.PushT(astack.PeekLast())
 
             elif opcode == TOALTSTACK:
                 astack.PushT(estack.Pop())
@@ -256,7 +255,7 @@ class ExecutionEngine:
                 # if n == 0 break, same as do x if n > 0
                 if n > 0:
                     item = estack.Peek(n)
-                    estack.Set(n, estack.Peek())
+                    estack.Set(n, estack.PeekLast())
                     estack.Set(0, item)
 
             elif opcode == XTUCK:
@@ -265,7 +264,7 @@ class ExecutionEngine:
                 if n <= 0:
                     return self.VM_FAULT_and_report(VMFault.UNKNOWN4)
 
-                estack.Insert(n, estack.Peek())
+                estack.Insert(n, estack.PeekLast())
 
             elif opcode == DEPTH:
                 estack.PushT(estack.Count)
@@ -274,7 +273,7 @@ class ExecutionEngine:
                 estack.Pop()
 
             elif opcode == DUP:
-                estack.PushT(estack.Peek())
+                estack.PushT(estack.PeekLast())
 
             elif opcode == NIP:
                 x2 = estack.Pop()
@@ -284,7 +283,7 @@ class ExecutionEngine:
             elif opcode == OVER:
 
                 x2 = estack.Pop()
-                x1 = estack.Peek()
+                x1 = estack.PeekLast()
                 estack.PushT(x2)
                 estack.PushT(x1)
 
@@ -943,32 +942,9 @@ class ExecutionEngine:
 
             if self._exit_on_error:
                 self._VMState |= VMState.FAULT
-            else:
-                logger.error(error_msg)
-                logger.exception(e)
-
-    def StepOut(self):
-        self._VMState &= ~VMState.BREAK
-        count = self._InvocationStack.Count
-
-        while self._VMState & VMState.HALT == 0 and \
-                self._VMState & VMState.FAULT == 0 and \
-                self._VMState & VMState.BREAK == 0 and \
-                self._InvocationStack.Count > count:
-            self.StepInto()
-
-    def StepOver(self):
-        if self._VMState & VMState.HALT > 0 or self._VMState & VMState.FAULT > 0:
-            return
-
-        self._VMState &= ~VMState.BREAK
-        count = self._InvocationStack.Count
-
-        while self._VMState & VMState.HALT == 0 and \
-                self._VMState & VMState.FAULT == 0 and \
-                self._VMState & VMState.BREAK == 0 and \
-                self._InvocationStack.Count > count:
-            self.StepInto()
+#            else:
+#                logger.error(error_msg)
+#                logger.exception(e)
 
     def VM_FAULT_and_report(self, id, *args):
         self._VMState |= VMState.FAULT

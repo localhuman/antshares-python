@@ -45,12 +45,14 @@ class RandomAccessStack:
 
         return self._list[self._size - 1 - index]
 
+    def PeekLast(self):
+        return self._list[-1]
+
     def Pop(self):
-        #        self.PrintList("POPSTACK <- ")
         return self.Remove(0)
 
     def PushT(self, item):
-        if not type(item) is StackItem and not issubclass(type(item), StackItem):
+        if not isinstance(item, StackItem):
             item = StackItem.New(item)
 
         self._list.append(item)

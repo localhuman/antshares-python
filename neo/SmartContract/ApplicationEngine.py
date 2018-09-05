@@ -63,7 +63,7 @@ class ApplicationEngine(ExecutionEngine):
 
         if opcode in [PACK, NEWARRAY, NEWSTRUCT]:
 
-            size = self.EvaluationStack.Peek().GetBigInteger()
+            size = self.EvaluationStack.PeekLast().GetBigInteger()
 
             if size > maxArraySize:
                 logger.error("ARRAY SIZE TOO BIG!!!")
@@ -128,7 +128,7 @@ class ApplicationEngine(ExecutionEngine):
             length = 0
 
             try:
-                length = len(self.EvaluationStack.Peek(0).GetByteArray()) + len(self.EvaluationStack.Peek(1).GetByteArray())
+                length = len(self.EvaluationStack.PeekLast().GetByteArray()) + len(self.EvaluationStack.Peek(1).GetByteArray())
             except Exception as e:
                 logger.error("COULD NOT GET STR LENGTH!")
                 raise e
@@ -163,7 +163,7 @@ class ApplicationEngine(ExecutionEngine):
 
             elif opcode == UNPACK:
 
-                item = self.EvaluationStack.Peek()
+                item = self.EvaluationStack.PeekLast()
 
                 if not item.IsArray:
                     logger.error("ITEM NOT ARRAY:")
@@ -302,7 +302,7 @@ class ApplicationEngine(ExecutionEngine):
         elif opcode == CHECKMULTISIG:
             if self.EvaluationStack.Count == 0:
                 return 1
-            item = self.EvaluationStack.Peek()
+            item = self.EvaluationStack.PeekLast()
 
             if isinstance(item, Array):
                 n = item.Count
