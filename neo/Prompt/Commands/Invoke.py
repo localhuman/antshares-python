@@ -40,8 +40,8 @@ from neocore.Cryptography.ECCurve import ECDSA
 from neocore.UInt160 import UInt160
 from neo.VM.OpCode import PACK
 
-DEFAULT_MIN_FEE = Fixed8.FromDecimal(.0001)
-
+#DEFAULT_MIN_FEE = Fixed8.FromDecimal(.0001)
+DEFAULT_MIN_FEE = Fixed8.Zero()
 
 def InvokeContract(wallet, tx, fee=Fixed8.Zero(), from_addr=None, owners=None):
     if from_addr is not None:
@@ -60,7 +60,6 @@ def InvokeContract(wallet, tx, fee=Fixed8.Zero(), from_addr=None, owners=None):
         wallet.Sign(context)
 
         if owners:
-            print("GATHERING INVOKE SIGS")
             gather_signatures(context, wallet_tx, list(owners))
 
         if context.Completed:
@@ -612,7 +611,6 @@ def test_deploy_and_invoke(deploy_script, invoke_args, wallet,
 
 def gather_signatures(context, itx, owners):
     do_exit = False
-    print("owners %s " % owners)
     print("\n\n*******************\n")
     print("Gather Signatures for Transaction:\n%s " % json.dumps(itx.ToJson(), indent=4))
     print("Please use a client to sign the following: %s " % itx.GetHashData())

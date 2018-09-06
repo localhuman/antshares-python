@@ -25,7 +25,7 @@ def construct_and_send(prompter, wallet, arguments, prompt_password=True):
 
         arguments, from_address = get_from_addr(arguments)
         arguments, user_tx_attributes = get_tx_attr_from_args(arguments)
-        arguments, owners = get_owners_from_params(arguments)
+        arguments, owners = get_owners_from_params(arguments, wallet)
         arguments, priority_fee = get_fee(arguments)
         to_send = get_arg(arguments)
         address_to = get_arg(arguments, 1)
