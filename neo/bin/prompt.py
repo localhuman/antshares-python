@@ -1020,7 +1020,7 @@ class PromptInterface:
                         Blockchain.Default().Pause()
                     elif command == 'resume':
                         Blockchain.Default().Resume()
-                    elif command =='setupsale':
+                    elif command == 'setupsale':
                         setupSale(self.Wallet, arguments)
                     elif command is None:
                         print("Please specify a command")

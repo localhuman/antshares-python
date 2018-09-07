@@ -19,8 +19,10 @@ from neo.VM.OpCode import PACK
 import os
 import binascii
 import json
+import requests
 
 FEE = Fixed8.FromDecimal(.000001)
+
 
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""
@@ -51,7 +53,6 @@ def setupSale(wallet, args):
 
         if not len(items):
             return
-
 
         if event.notify_type == b'kyc_registration':
             registered = items[1].Value
@@ -101,7 +102,7 @@ def make_tx(addrlist, roundNo, contract, wallet):
     sb = ScriptBuilder()
 
     for addr in addrlist:
-#        print("address %s " % addr)
+        #        print("address %s " % addr)
         addr_hash = Helper.AddrStrToScriptHash(addr).Data
         sb.push(addr_hash)
     sb.push(len(addrlist))
@@ -121,7 +122,7 @@ def make_tx(addrlist, roundNo, contract, wallet):
     tx = wallet.MakeTransaction(tx, fee=FEE)
 
     contract = wallet.GetDefaultContract()
-    tx.Attributes= [TransactionAttribute(usage=TransactionAttributeUsage.Script, data=contract.ScriptHash)]
+    tx.Attributes = [TransactionAttribute(usage=TransactionAttributeUsage.Script, data=contract.ScriptHash)]
 
     context = ContractParametersContext(tx)
     wallet.Sign(context)

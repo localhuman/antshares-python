@@ -40,8 +40,8 @@ from neocore.Cryptography.ECCurve import ECDSA
 from neocore.UInt160 import UInt160
 from neo.VM.OpCode import PACK
 
-#DEFAULT_MIN_FEE = Fixed8.FromDecimal(.0001)
-DEFAULT_MIN_FEE = Fixed8.Zero()
+DEFAULT_MIN_FEE = Fixed8.FromDecimal(0)
+
 
 def InvokeContract(wallet, tx, fee=Fixed8.Zero(), from_addr=None, owners=None):
     if from_addr is not None:

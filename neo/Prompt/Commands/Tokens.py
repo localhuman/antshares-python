@@ -1,5 +1,5 @@
 from neo.Prompt.Commands.Invoke import InvokeContract, InvokeWithTokenVerificationScript
-from neo.Prompt.Utils import get_asset_id, get_from_addr, get_tx_attr_from_args,get_owners_from_params
+from neo.Prompt.Utils import get_asset_id, get_from_addr, get_tx_attr_from_args, get_owners_from_params, get_remark_from_params
 from neo.Wallets.NEP5Token import NEP5Token
 from neocore.Fixed8 import Fixed8
 from prompt_toolkit import prompt
@@ -17,10 +17,9 @@ def token_send(wallet, args, prompt_passwd=True):
     send_from = args[1]
     send_to = args[2]
     amount = amount_from_string(token, args[3])
-    owners = None
-    if args[4]:
-        args, owners = get_owners_from_params(args, wallet)
-    return do_token_transfer(token, wallet, send_from, send_to, amount, prompt_passwd=prompt_passwd,owners=owners)
+    args, owners = get_owners_from_params(args, wallet)
+    args, remarks = get_remark_from_params(args)
+    return do_token_transfer(token, wallet, send_from, send_to, amount, prompt_passwd=prompt_passwd, owners=owners, tx_attributes=remarks)
 
 
 def token_send_from(wallet, args, prompt_passwd=True):
@@ -220,7 +219,7 @@ def do_token_transfer(token, wallet, from_address, to_address, amount, prompt_pa
                     print("incorrect password")
                     return False
 
-            return InvokeContract(wallet, tx, fee,owners=owners)
+            return InvokeContract(wallet, tx, fee, owners=owners)
 
     print("could not transfer tokens")
     return False
