@@ -35,9 +35,7 @@ class SmartContractTest3(BlockchainFixtureTestCase):
 
         self.assertTrue(result)
 
-        snapshot = Blockchain.Default()._db.snapshot()
-
-        contracts = DBCollection(Blockchain.Default()._db, snapshot, DBPrefix.ST_Contract, ContractState)
+        contracts = DBCollection(Blockchain.Default()._db, DBPrefix.ST_Contract, ContractState)
 
         contract_added = contracts.TryGet(self.contract_hash)
 
@@ -82,8 +80,7 @@ class SmartContractTest3(BlockchainFixtureTestCase):
         self.assertTrue(result)
 
         # now the asset that was created should be there
-        sn = Blockchain.Default()._db.snapshot()
-        assets = DBCollection(Blockchain.Default()._db, sn, DBPrefix.ST_Asset, AssetState)
+        assets = DBCollection(Blockchain.Default()._db, DBPrefix.ST_Asset, AssetState)
 
         newasset = assets.TryGet(self.asset_create_id)
 

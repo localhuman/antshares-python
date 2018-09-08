@@ -160,6 +160,7 @@ class LevelDBBlockchain(Blockchain):
                             self._stored_header_count += 1
 
                 if self._stored_header_count == 0:
+                    logger.info("Current stored headers empty, re-creating from stored blocks...")
                     headers = []
                     for key, value in self._db.iterator(prefix=DBPrefix.DATA_Block):
                         dbhash = bytearray(value)[8:]
@@ -169,6 +170,10 @@ class LevelDBBlockchain(Blockchain):
                     for h in headers:
                         if h.Index > 0:
                             self._header_index.append(h.Hash.ToBytes())
+
+                    # this will trigger the write of stored headers
+                    self.OnAddHeader(headers[-1])
+
 
                 elif current_header_height > self._stored_header_count:
 
@@ -208,7 +213,7 @@ class LevelDBBlockchain(Blockchain):
                 raise Exception("Database schema changed")
 
     def GetStates(self, prefix, classref):
-        return DBCollection(self._db, None, prefix, classref)
+        return DBCollection(self._db, prefix, classref)
 
     def GetAccountState(self, script_hash, print_all_accounts=False):
 
@@ -219,25 +224,19 @@ class LevelDBBlockchain(Blockchain):
                 logger.info("could not convert argument to bytes :%s " % e)
                 return None
 
-        sn = self._db.snapshot()
-        accounts = DBCollection(self._db, sn, DBPrefix.ST_Account, AccountState)
+        accounts = DBCollection(self._db, DBPrefix.ST_Account, AccountState)
         acct = accounts.TryGet(keyval=script_hash)
-
-        sn.close()
 
         return acct
 
     def GetStorageItem(self, storage_key):
-        sn = self._db.snapshot()
-        storages = DBCollection(self._db, sn, DBPrefix.ST_Storage, StorageItem)
+        storages = DBCollection(self._db, DBPrefix.ST_Storage, StorageItem)
         item = storages.TryGet(storage_key.ToArray())
-        sn.close()
         return item
 
     def SearchContracts(self, query):
         res = []
-        sn = self._db.snapshot()
-        contracts = DBCollection(self._db, sn, DBPrefix.ST_Contract, ContractState)
+        contracts = DBCollection(self._db, DBPrefix.ST_Contract, ContractState)
         keys = contracts.Keys
 
         query = query.casefold()
@@ -257,16 +256,12 @@ class LevelDBBlockchain(Blockchain):
             except Exception as e:
                 logger.info("Could not query contract: %s " % e)
 
-        sn.close()
-
         return res
 
     def ShowAllContracts(self):
 
-        sn = self._db.snapshot()
-        contracts = DBCollection(self._db, sn, DBPrefix.ST_Contract, ContractState)
+        contracts = DBCollection(self._db, DBPrefix.ST_Contract, ContractState)
         keys = contracts.Keys
-        sn.close()
         return keys
 
     def GetContract(self, hash):
@@ -278,22 +273,18 @@ class LevelDBBlockchain(Blockchain):
                 logger.info("could not convert argument to bytes :%s " % e)
                 return None
 
-        sn = self._db.snapshot()
-        contracts = DBCollection(self._db, sn, DBPrefix.ST_Contract, ContractState)
+        contracts = DBCollection(self._db, DBPrefix.ST_Contract, ContractState)
         contract = contracts.TryGet(keyval=hash)
-        sn.close()
         return contract
 
     def GetAllSpentCoins(self):
-        sn = self._db.snapshot()
-        coins = DBCollection(self._db, sn, DBPrefix.ST_SpentCoin, SpentCoinState)
+        coins = DBCollection(self._db, DBPrefix.ST_SpentCoin, SpentCoinState)
 
         return coins.Keys
 
     def GetUnspent(self, hash, index):
 
-        sn = self._db.snapshot()
-        coins = DBCollection(self._db, sn, DBPrefix.ST_Coin, UnspentCoinState)
+        coins = DBCollection(self._db, DBPrefix.ST_Coin, UnspentCoinState)
 
         state = coins.TryGet(hash)
 
@@ -312,12 +303,8 @@ class LevelDBBlockchain(Blockchain):
         if type(tx_hash) is not bytes:
             tx_hash = bytes(tx_hash.encode('utf-8'))
 
-        sn = self._db.snapshot()
-        coins = DBCollection(self._db, sn, DBPrefix.ST_SpentCoin, SpentCoinState)
-
+        coins = DBCollection(self._db, DBPrefix.ST_SpentCoin, SpentCoinState)
         result = coins.TryGet(keyval=tx_hash)
-
-        sn.close()
 
         return result
 
@@ -325,8 +312,7 @@ class LevelDBBlockchain(Blockchain):
 
         unspents = []
 
-        sn = self._db.snapshot()
-        unspentcoins = DBCollection(self._db, sn, DBPrefix.ST_Coin, UnspentCoinState)
+        unspentcoins = DBCollection(self._db, DBPrefix.ST_Coin, UnspentCoinState)
 
         state = unspentcoins.TryGet(keyval=hash.ToBytes())
 
@@ -346,8 +332,7 @@ class LevelDBBlockchain(Blockchain):
             return None
 
         out = {}
-        sn = self._db.snapshot()
-        coins = DBCollection(self._db, sn, DBPrefix.ST_SpentCoin, SpentCoinState)
+        coins = DBCollection(self._db, DBPrefix.ST_SpentCoin, SpentCoinState)
 
         state = coins.TryGet(keyval=hash.ToBytes())
 
@@ -355,14 +340,11 @@ class LevelDBBlockchain(Blockchain):
             for item in state.Items:
                 out[item.index] = SpentCoin(tx.outputs[item.index], height, item.height)
 
-        sn.close()
-
         return out
 
     def SearchAssetState(self, query):
         res = []
-        sn = self._db.snapshot()
-        assets = DBCollection(self._db, sn, DBPrefix.ST_Asset, AssetState)
+        assets = DBCollection(self._db, DBPrefix.ST_Asset, AssetState)
         keys = assets.Keys
 
         for item in keys:
@@ -373,7 +355,6 @@ class LevelDBBlockchain(Blockchain):
                 res.append(asset)
             elif query in Crypto.ToAddress(asset.Admin):
                 res.append(asset)
-        sn.close()
 
         return res
 
@@ -386,8 +367,7 @@ class LevelDBBlockchain(Blockchain):
                 logger.info("could not convert argument to bytes :%s " % e)
                 return None
 
-        sn = self._db.snapshot()
-        assets = DBCollection(self._db, sn, DBPrefix.ST_Asset, AssetState)
+        assets = DBCollection(self._db, DBPrefix.ST_Asset, AssetState)
         asset = assets.TryGet(assetId)
 
         return asset
@@ -410,13 +390,21 @@ class LevelDBBlockchain(Blockchain):
         logger.info("Could not find transaction for hash %s " % hash)
         return None, -1
 
-    def AddBlockDirectly(self, block, addHeader=True):
+    def AddBlockDirectly(self, block):
         if block.Index != self.Height + 1:
             raise Exception("Invalid block")
-#        if block.Index == len(self._header_index) and addHeader:
-#            self.AddHeader(block.Header)
+        if block.Index == len(self._header_index):
+            self.AddHeader(block.Header)
         self.Persist(block)
-#        self.OnPersistCompleted(block)
+        self.OnPersistCompleted(block)
+
+    def AddBlockFromImport(self, block, do_persist_complete=True):
+        if block.Index != self.Height + 1:
+            raise Exception("Invalid block")
+        self.Persist(block)
+        if do_persist_complete:
+            self.OnPersistCompleted(block)
+
 
     def AddBlock(self, block):
 
@@ -656,7 +644,8 @@ class LevelDBBlockchain(Blockchain):
             self._stored_header_count += 2000
 
         with self._db.write_batch() as wb:
-            wb.put(DBPrefix.DATA_Block + hHash, bytes(8) + header.ToArray())
+            if self._db.get(DBPrefix.DATA_Block + hHash) is None:
+                wb.put(DBPrefix.DATA_Block + hHash, bytes(8) + header.ToArray())
             wb.put(DBPrefix.SYS_CurrentHeader, hHash + header.Index.to_bytes(4, 'little'))
 
     @property
@@ -667,14 +656,13 @@ class LevelDBBlockchain(Blockchain):
 
         self._persisting_block = block
 
-        sn = self._db.snapshot()
-        accounts = DBCollection(self._db, sn, DBPrefix.ST_Account, AccountState)
-        unspentcoins = DBCollection(self._db, sn, DBPrefix.ST_Coin, UnspentCoinState)
-        spentcoins = DBCollection(self._db, sn, DBPrefix.ST_SpentCoin, SpentCoinState)
-        assets = DBCollection(self._db, sn, DBPrefix.ST_Asset, AssetState)
-        validators = DBCollection(self._db, sn, DBPrefix.ST_Validator, ValidatorState)
-        contracts = DBCollection(self._db, sn, DBPrefix.ST_Contract, ContractState)
-        storages = DBCollection(self._db, sn, DBPrefix.ST_Storage, StorageItem)
+        accounts = DBCollection(self._db, DBPrefix.ST_Account, AccountState)
+        unspentcoins = DBCollection(self._db,  DBPrefix.ST_Coin, UnspentCoinState)
+        spentcoins = DBCollection(self._db, DBPrefix.ST_SpentCoin, SpentCoinState)
+        assets = DBCollection(self._db, DBPrefix.ST_Asset, AssetState)
+        validators = DBCollection(self._db, DBPrefix.ST_Validator, ValidatorState)
+        contracts = DBCollection(self._db, DBPrefix.ST_Contract, ContractState)
+        storages = DBCollection(self._db, DBPrefix.ST_Storage, StorageItem)
 
         amount_sysfee = self.GetSysFeeAmount(block.PrevHash) + block.TotalFees().value
         amount_sysfee_bytes = amount_sysfee.to_bytes(8, 'little')
@@ -823,8 +811,6 @@ class LevelDBBlockchain(Blockchain):
 
             # commit contracts
             contracts.Commit(wb)
-
-            sn.close()
 
             wb.put(DBPrefix.SYS_CurrentBlock, block.Hash.ToBytes() + block.IndexBytes())
             self._current_block_height = block.Index

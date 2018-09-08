@@ -637,7 +637,7 @@ class PromptInterface:
             block = Blockchain.Default().GetBlock(item)
 
             if block is not None:
-
+                block.LoadTransactions()
                 bjson = json.dumps(block.ToJson(), indent=4)
                 tokens = [("class:number", bjson)]
                 print_formatted_text(FormattedText(tokens), style=self.token_style)
@@ -677,6 +677,8 @@ class PromptInterface:
                     print_formatted_text(FormattedText(tokens), style=self.token_style)
                     print('\n')
             except Exception as e:
+                import traceback
+                traceback.print_exc()
                 print("Could not find transaction from args: %s (%s)" % (e, args))
         else:
             print("Please specify a TX hash")

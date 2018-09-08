@@ -68,7 +68,12 @@ def main():
             block = chain.GetBlockByHeight(index)
             block.LoadTransactions()
 
-#            output = binascii.unhexlify(block.ToArray())
+            # make sure this block has transactions
+            # otherwise we will have a bad import
+            if len(block.Transactions) < 1:
+                raise Exception("Block %s has no transactions %s " % block.Index)
+
+            # output = binascii.unhexlify(block.ToArray())
             # this saves a hex then unhex conversion
             output = Helper.ToStream(block)
 

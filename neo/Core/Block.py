@@ -85,6 +85,9 @@ class Block(BlockBase, InventoryMixin):
             if type(tx) is str:
                 is_trimmed = True
         except Exception as e:
+            print("Could not get full transactions %s  " % e )
+            import pdb
+            pdb.set_trace()
             pass
 
         if not is_trimmed:
@@ -164,20 +167,13 @@ class Block(BlockBase, InventoryMixin):
         self.Transactions = []
         transaction_length = reader.ReadVarInt()
 
-        if transaction_length < 1:
-
-            if self.Index == 1413807:
-                print("adding missing miner tx")
-                miner = MinerTransaction()
-                miner.__hash = UInt256.ParseString('23fc7778ddb32d5f1d9cc565c848a3d58e1e7d1c1dc300a9d19e9952ad739b9e')
-                miner.Nonce = 3872783724
-                self.Transactions = [miner]
-                return
-            raise Exception('Invalid format %s ' % self.Index)
-
         for i in range(0, transaction_length):
             tx = Transaction.DeserializeFrom(reader)
             self.Transactions.append(tx)
+
+        if len(self.Transactions) < 1:
+            raise Exception('Invalid format %s ' % self.Index)
+
 
     def Deserialize(self, reader):
         """
@@ -248,6 +244,9 @@ class Block(BlockBase, InventoryMixin):
                 raise Exception("Could not find transaction!\n Are you running code against a valid Blockchain instance?\n Tests that accesses transactions or size of a block but inherit from NeoTestCase instead of BlockchainFixtureTestCase will not work.")
             tx_list.append(tx)
 
+        if len(tx_list) < 1:
+            raise Exception("Invalid block, no transactions found")
+
         block.Transactions = tx_list
 
         StreamManager.ReleaseStream(ms)
@@ -302,6 +301,9 @@ class Block(BlockBase, InventoryMixin):
         Returns:
             bytes:
         """
+        if len(self.Transactions) < 1:
+            raise Exception("Invalid block, no transactions")
+
         ms = StreamManager.GetStream()
         writer = BinaryWriter(ms)
         self.SerializeUnsigned(writer)
