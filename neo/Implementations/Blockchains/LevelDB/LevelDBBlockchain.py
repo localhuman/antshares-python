@@ -110,7 +110,6 @@ class LevelDBBlockchain(Blockchain):
 
         try:
             self._db = plyvel.DB(self._path, create_if_missing=True)
-            #            self._db = plyvel.DB(self._path, create_if_missing=True, bloom_filter_bits=16, compression=None)
             logger.info("Created Blockchain DB at %s " % self._path)
         except Exception as e:
             logger.info("leveldb unavailable, you may already be running this process: %s " % e)
@@ -132,9 +131,6 @@ class LevelDBBlockchain(Blockchain):
                 current_header_height = int.from_bytes(ba[-4:], 'little')
                 current_header_hash = bytes(ba[:64].decode('utf-8'), encoding='utf-8')
 
-                #            logger.info("current header hash!! %s " % current_header_hash)
-                #            logger.info("current header height, hashes %s %s %s" %(self._current_block_height, self._header_index, current_header_height) )
-
                 hashes = []
                 try:
                     for key, value in self._db.iterator(prefix=DBPrefix.IX_HeaderHashList):
@@ -144,8 +140,6 @@ class LevelDBBlockchain(Blockchain):
                         key = int.from_bytes(key[-4:], 'little')
                         hashes.append({'k': key, 'v': hlist})
                         StreamManager.ReleaseStream(ms)
-                #                hashes.append({'index':int.from_bytes(key, 'little'), 'hash':value})
-
                 except Exception as e:
                     logger.info("Could not get stored header hash list: %s " % e)
 
@@ -846,6 +840,8 @@ class LevelDBBlockchain(Blockchain):
                     del self._block_cache[hash]
                 except Exception as e:
                     logger.info("Could not persist block %s " % e)
+                    import traceback
+                    traceback.print_exc()
                     raise e
 
     def Resume(self):

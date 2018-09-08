@@ -1,7 +1,7 @@
 {
     "ApplicationConfiguration": {
-        "DataDirectoryPath": "Chains/SC234",
-        "NotificationDataPath": "Chains/Test_Notif",
+        "DataDirectoryPath": "Chains/SC2346",
+        "NotificationDataPath": "Chains/Test_Notif6",
         "RPCPort": 20332,
         "NodePort": 20333,
         "SslCert": "",

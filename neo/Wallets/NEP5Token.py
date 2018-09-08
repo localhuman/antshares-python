@@ -134,7 +134,6 @@ class NEP5Token(VerificationCode, SerializableMixin):
         sb.EmitAppCallWithOperationAndArgs(self.ScriptHash, 'balanceOf', [addr])
 
         tx, fee, results, num_ops = test_invoke(sb.ToArray(), wallet, [])
-
         try:
             val = results[0].GetBigInteger()
             precision_divisor = pow(10, self.decimals)
