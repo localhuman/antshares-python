@@ -168,7 +168,6 @@ class LevelDBBlockchain(Blockchain):
                     # this will trigger the write of stored headers
                     self.OnAddHeader(headers[-1])
 
-
                 elif current_header_height > self._stored_header_count:
 
                     try:
@@ -398,7 +397,6 @@ class LevelDBBlockchain(Blockchain):
         self.Persist(block)
         if do_persist_complete:
             self.OnPersistCompleted(block)
-
 
     def AddBlock(self, block):
 
@@ -651,7 +649,7 @@ class LevelDBBlockchain(Blockchain):
         self._persisting_block = block
 
         accounts = DBCollection(self._db, DBPrefix.ST_Account, AccountState)
-        unspentcoins = DBCollection(self._db,  DBPrefix.ST_Coin, UnspentCoinState)
+        unspentcoins = DBCollection(self._db, DBPrefix.ST_Coin, UnspentCoinState)
         spentcoins = DBCollection(self._db, DBPrefix.ST_SpentCoin, SpentCoinState)
         assets = DBCollection(self._db, DBPrefix.ST_Asset, AssetState)
         validators = DBCollection(self._db, DBPrefix.ST_Validator, ValidatorState)

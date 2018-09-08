@@ -16,6 +16,7 @@ from neo.Core.Size import GetVarSize
 from neo.Core.TX.MinerTransaction import MinerTransaction
 from neocore.UInt256 import UInt256
 
+
 class Block(BlockBase, InventoryMixin):
     #  < summary >
     #  交易列表
@@ -85,7 +86,7 @@ class Block(BlockBase, InventoryMixin):
             if type(tx) is str:
                 is_trimmed = True
         except Exception as e:
-            print("Could not get full transactions %s  " % e )
+            print("Could not get full transactions %s  " % e)
             import pdb
             pdb.set_trace()
             pass
@@ -173,7 +174,6 @@ class Block(BlockBase, InventoryMixin):
 
         if len(self.Transactions) < 1:
             raise Exception('Invalid format %s ' % self.Index)
-
 
     def Deserialize(self, reader):
         """

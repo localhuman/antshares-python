@@ -82,7 +82,7 @@ class DBCollection:
     def Reset(self):
         self.Changed = self._ChangedResetState
         self.Deleted = self._DeletedResetState
-        
+
         self._ChangedResetState = None
         self._DeletedResetState = None
 
@@ -184,7 +184,7 @@ class DBCollection:
     def MarkForReset(self):
         self._ChangedResetState = self.Changed
         self._DeletedResetState = self.Deleted
-        
+
     def MarkChanged(self, keyval):
         if keyval not in self.Changed:
             self.Changed.append(keyval)

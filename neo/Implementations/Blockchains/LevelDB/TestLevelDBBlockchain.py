@@ -25,7 +25,6 @@ class TestLevelDBBlockchain(LevelDBBlockchain):
 
     def Persist(self, block):
 
-
         accounts = DBCollection(self._db, DBPrefix.ST_Account, AccountState)
         unspentcoins = DBCollection(self._db, DBPrefix.ST_Coin, UnspentCoinState)
         spentcoins = DBCollection(self._db, DBPrefix.ST_SpentCoin, SpentCoinState)

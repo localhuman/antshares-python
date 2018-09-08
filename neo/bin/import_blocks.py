@@ -8,7 +8,7 @@ from neo.Implementations.Blockchains.LevelDB.DBPrefix import DBPrefix
 from neo.Settings import settings
 from neocore.IO.BinaryReader import BinaryReader
 from neocore.IO.BinaryWriter import BinaryWriter
-from neo.IO.MemoryStream import StreamManager,MemoryStream
+from neo.IO.MemoryStream import StreamManager, MemoryStream
 import argparse
 import os
 import shutil
@@ -36,7 +36,7 @@ def main():
 
     parser.add_argument("-n", "--notifications", help="Persist Notifications to database", default=False, action="store_true")
 
-    parser.add_argument("-a", "--append", action="store_true", default=False,help="Append to current Block database")
+    parser.add_argument("-a", "--append", action="store_true", default=False, help="Append to current Block database")
 
     args = parser.parse_args()
 
@@ -61,13 +61,13 @@ def main():
         raise Exception("Please specify an input path")
     file_path = args.input
 
-    append=False
-    store_notifications=False
+    append = False
+    store_notifications = False
 
     start_block = 0
 
     if args.append:
-        append=True
+        append = True
 
     if args.notifications:
         store_notifications = True
@@ -83,7 +83,6 @@ def main():
 
         target_dir = os.path.join(settings.DATA_DIR_PATH, settings.LEVELDB_PATH)
         notif_target_dir = os.path.join(settings.DATA_DIR_PATH, settings.NOTIFICATION_DB_PATH)
-
 
         if append:
             blockchain = LevelDBBlockchain(settings.chain_leveldb_path, skip_header_check=True)

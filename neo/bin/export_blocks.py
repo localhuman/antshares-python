@@ -8,6 +8,7 @@ from tqdm import trange
 import binascii
 from neo.Core.Helper import Helper
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--mainnet", action="store_true", default=False,
