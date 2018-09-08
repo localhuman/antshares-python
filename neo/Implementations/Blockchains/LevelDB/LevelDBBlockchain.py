@@ -166,7 +166,8 @@ class LevelDBBlockchain(Blockchain):
                             self._header_index.append(h.Hash.ToBytes())
 
                     # this will trigger the write of stored headers
-                    self.OnAddHeader(headers[-1])
+                    if len(headers):
+                        self.OnAddHeader(headers[-1])
 
                 elif current_header_height > self._stored_header_count:
 
