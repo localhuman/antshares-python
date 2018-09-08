@@ -192,7 +192,7 @@ class ExecutionEngine:
                 istack.PushT(context.Clone())
                 context.SetInstructionPointer(context.InstructionPointer + 2)
 
-                self.ExecuteOp(JMP, context)
+                self.ExecuteOp(JMP, self.CurrentContext)
 
             elif opcode == RET:
                 istack.Pop().Dispose()
@@ -942,9 +942,6 @@ class ExecutionEngine:
 
             if self._exit_on_error:
                 self._VMState |= VMState.FAULT
-#            else:
-#                logger.error(error_msg)
-#                logger.exception(e)
 
     def VM_FAULT_and_report(self, id, *args):
         self._VMState |= VMState.FAULT
