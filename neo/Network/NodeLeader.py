@@ -127,7 +127,8 @@ class NodeLeader:
 
         # check in on peers every 4 mins
         self.peer_check_loop = task.LoopingCall(self.PeerCheckLoop)
-        self.peer_check_loop.start(240, now=False)
+        peer_loop_deferred = self.peer_check_loop.start(240, now=False)
+        peer_loop_deferred.addErrback(self.OnPeerLoopError)
 
         if settings.ACCEPT_INCOMING_PEERS:
             reactor.listenTCP(settings.NODE_PORT, NeoClientFactory(incoming_client=True))
@@ -173,6 +174,9 @@ class NodeLeader:
 
         for p in self.Peers:
             p.Disconnect()
+
+    def OnPeerLoopError(self, err):
+        print("Error on Peer check loop %s " % err)
 
     def AddConnectedPeer(self, peer):
         """

@@ -263,16 +263,21 @@ class NeoNode(Protocol):
         else:
             self.Log("Command not implemented {} {} ".format(m.Command, self.endpoint))
 
+    def OnLoopError(self, err):
+        print("On neo Node loop error %s " % err)
+
     def ProtocolReady(self):
         self.RequestPeerInfo()
         self.AskForMoreHeaders()
 
         self.block_loop = task.LoopingCall(self.AskForMoreBlocks)
-        self.block_loop.start(self.sync_mode)
+        block_loop_deferred = self.block_loop.start(self.sync_mode)
+        block_loop_deferred.addErrback(self.OnLoopError)
 
         # ask every 3 minutes for new peers
         self.peer_loop = task.LoopingCall(self.RequestPeerInfo)
-        self.peer_loop.start(120, now=False)
+        peer_loop_deferred = self.peer_loop.start(120, now=False)
+        peer_loop_deferred.addErrback(self.OnLoopError)
 
     def AskForMoreHeaders(self):
         # self.Log("asking for more headers...")
