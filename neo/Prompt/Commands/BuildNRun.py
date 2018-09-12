@@ -42,7 +42,7 @@ def BuildAndRun(arguments, wallet, verbose=True, min_fee=DEFAULT_MIN_FEE, invoca
 
     arguments, from_addr = get_from_addr(arguments)
     arguments, invoke_attrs = get_tx_attr_from_args(arguments)
-    arguments, owners = get_owners_from_params(arguments)
+    arguments, owners = get_owners_from_params(arguments, wallet)
     path = get_arg(arguments)
     contract_script = Compiler.instance().load_and_save(path)
 

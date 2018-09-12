@@ -1,5 +1,5 @@
 from neo.Prompt.Commands.Invoke import InvokeContract, InvokeWithTokenVerificationScript
-from neo.Prompt.Utils import get_asset_id, get_from_addr, get_tx_attr_from_args
+from neo.Prompt.Utils import get_asset_id, get_from_addr, get_tx_attr_from_args, get_owners_from_params, get_remark_from_params
 from neo.Wallets.NEP5Token import NEP5Token
 from neocore.Fixed8 import Fixed8
 from prompt_toolkit import prompt
@@ -9,7 +9,7 @@ import binascii
 
 
 def token_send(wallet, args, prompt_passwd=True):
-    if len(args) != 4:
+    if len(args) < 4:
         print("please provide a token symbol, from address, to address, and amount")
         return False
 
@@ -17,8 +17,9 @@ def token_send(wallet, args, prompt_passwd=True):
     send_from = args[1]
     send_to = args[2]
     amount = amount_from_string(token, args[3])
-
-    return do_token_transfer(token, wallet, send_from, send_to, amount, prompt_passwd=prompt_passwd)
+    args, owners = get_owners_from_params(args, wallet)
+    args, remarks = get_remark_from_params(args)
+    return do_token_transfer(token, wallet, send_from, send_to, amount, prompt_passwd=prompt_passwd, owners=owners, tx_attributes=remarks)
 
 
 def token_send_from(wallet, args, prompt_passwd=True):
@@ -183,7 +184,7 @@ def token_crowdsale_register(wallet, args, prompt_passwd=True):
     return False
 
 
-def do_token_transfer(token, wallet, from_address, to_address, amount, prompt_passwd=True, tx_attributes=None):
+def do_token_transfer(token, wallet, from_address, to_address, amount, prompt_passwd=True, tx_attributes=None, owners=None):
     if not tx_attributes:
         tx_attributes = []
 
@@ -191,11 +192,15 @@ def do_token_transfer(token, wallet, from_address, to_address, amount, prompt_pa
         print("Please specify --from-addr={addr} to send NEP5 tokens")
         return False
 
-    # because we cannot differentiate between a normal and multisig from_addr, and because we want to make
-    # sending NEP5 tokens straight forward even when sending from multisig addresses, we include the script_hash
-    # for verification by default to the transaction attributes. See PR/Issue: https://github.com/CityOfZion/neo-python/pull/491
-    from_script_hash = binascii.unhexlify(bytes(wallet.ToScriptHash(from_address).ToString2(), 'utf-8'))
-    tx_attributes.append(TransactionAttribute(usage=TransactionAttributeUsage.Script, data=from_script_hash))
+    if owners:
+        for owner in owners:
+            tx_attributes.append(TransactionAttribute(usage=TransactionAttributeUsage.Script, data=owner))
+    else:
+        # because we cannot differentiate between a normal and multisig from_addr, and because we want to make
+        # sending NEP5 tokens straight forward even when sending from multisig addresses, we include the script_hash
+        # for verification by default to the transaction attributes. See PR/Issue: https://github.com/CityOfZion/neo-python/pull/491
+        from_script_hash = binascii.unhexlify(bytes(wallet.ToScriptHash(from_address).ToString2(), 'utf-8'))
+        tx_attributes.append(TransactionAttribute(usage=TransactionAttributeUsage.Script, data=from_script_hash))
 
     tx, fee, results = token.Transfer(wallet, from_address, to_address, amount, tx_attributes=tx_attributes)
 
@@ -214,7 +219,7 @@ def do_token_transfer(token, wallet, from_address, to_address, amount, prompt_pa
                     print("incorrect password")
                     return False
 
-            return InvokeContract(wallet, tx, fee)
+            return InvokeContract(wallet, tx, fee, owners=owners)
 
     print("could not transfer tokens")
     return False

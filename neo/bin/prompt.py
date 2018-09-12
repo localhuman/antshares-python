@@ -46,6 +46,7 @@ from neo.Settings import settings, PrivnetConnectionError
 from neo.UserPreferences import preferences
 from neocore.KeyPair import KeyPair
 from neocore.UInt256 import UInt256
+from neo.contrib.nex.setup_sale import setupSale
 
 
 class PromptFileHistory(FileHistory):
@@ -775,7 +776,7 @@ class PromptInterface:
             return
         args, from_addr = get_from_addr(args)
         args, invoke_attrs = get_tx_attr_from_args(args)
-        args, owners = get_owners_from_params(args)
+        args, owners = get_owners_from_params(args, self.Wallet)
         if args and len(args) > 0:
             tx, fee, results, num_ops = TestInvokeContract(self.Wallet, args, from_addr=from_addr, invoke_attrs=invoke_attrs, owners=owners)
 
@@ -1057,7 +1058,8 @@ class PromptInterface:
                         Blockchain.Default().Pause()
                     elif command == 'resume':
                         Blockchain.Default().Resume()
-
+                    elif command == 'setupsale':
+                        setupSale(self.Wallet, arguments)
                     elif command is None:
                         print("Please specify a command")
                     else:

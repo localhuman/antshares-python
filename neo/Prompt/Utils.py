@@ -40,7 +40,7 @@ def get_asset_attachments(params):
     return params, neo_to_attach, gas_to_attach
 
 
-def get_owners_from_params(params):
+def get_owners_from_params(params, wallet=None):
     to_remove = []
     owners = None
 
@@ -53,7 +53,10 @@ def get_owners_from_params(params):
                     owner_list = eval(item.replace('--owners=', ''))
                     owners = set()
                     for o in owner_list:
-                        shash = Helper.AddrStrToScriptHash(o)
+                        if wallet:
+                            shash = lookup_addr_str(wallet, o)
+                        else:
+                            shash = Helper.AddrStrToScriptHash(o)
                         owners.add(shash)
                 except Exception as e:
                     logger.info("Could not parse owner %s " % e)
@@ -62,6 +65,22 @@ def get_owners_from_params(params):
         params.remove(item)
 
     return params, owners
+
+
+def get_remark_from_params(params):
+    to_remove = []
+    remark = None
+    for item in params:
+        if type(item) is str:
+            if '--remark=' in item:
+                to_remove.append(item)
+                remark = item.replace('--remark=', '')
+    for item in to_remove:
+        params.remove(item)
+
+    if remark:
+        remark = [TransactionAttribute(usage=TransactionAttributeUsage.Remark1, data=remark.encode('utf-8'))]
+    return params, remark
 
 
 def get_asset_id(wallet, asset_str):

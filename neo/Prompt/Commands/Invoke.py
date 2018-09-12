@@ -40,7 +40,7 @@ from neocore.Cryptography.ECCurve import ECDSA
 from neocore.UInt160 import UInt160
 from neo.VM.OpCode import PACK
 
-DEFAULT_MIN_FEE = Fixed8.FromDecimal(.0001)
+DEFAULT_MIN_FEE = Fixed8.FromDecimal(0)
 
 
 def InvokeContract(wallet, tx, fee=Fixed8.Zero(), from_addr=None, owners=None):
@@ -310,7 +310,6 @@ def test_invoke(script, wallet, outputs, withdrawal_tx=None,
     if owners:
         owners = list(owners)
         for owner in owners:
-            #            print("contract %s %s" % (wallet.GetDefaultContract().ScriptHash, owner))
             if wallet.GetDefaultContract().ScriptHash != owner:
                 wallet_tx.Attributes.append(TransactionAttribute(usage=TransactionAttributeUsage.Script, data=owner))
                 wallet_tx.Attributes = make_unique_script_attr(tx.Attributes)
@@ -368,6 +367,7 @@ def test_invoke(script, wallet, outputs, withdrawal_tx=None,
             wallet_tx.Gas = tx_gas
             # reset the wallet outputs
             wallet_tx.outputs = outputs
+
             wallet_tx.Attributes = [] if invoke_attrs is None else deepcopy(invoke_attrs)
 
             return wallet_tx, net_fee, engine.EvaluationStack.Items, engine.ops_processed
@@ -538,7 +538,7 @@ def test_deploy_and_invoke(deploy_script, invoke_args, wallet,
             owners = list(owners)
             for owner in owners:
                 itx.Attributes.append(TransactionAttribute(usage=TransactionAttributeUsage.Script, data=owner))
-                itx.Attributes = make_unique_script_attr(itx.Attributes)
+#                itx.Attributes = make_unique_script_attr(itx.Attributes)
             context = ContractParametersContext(itx, isMultiSig=True)
 
         if context.Completed:
@@ -606,7 +606,6 @@ def test_deploy_and_invoke(deploy_script, invoke_args, wallet,
 
 def gather_signatures(context, itx, owners):
     do_exit = False
-    print("owners %s " % owners)
     print("\n\n*******************\n")
     print("Gather Signatures for Transaction:\n%s " % json.dumps(itx.ToJson(), indent=4))
     print("Please use a client to sign the following: %s " % itx.GetHashData())
