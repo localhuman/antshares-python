@@ -384,13 +384,14 @@ class LevelDBBlockchain(Blockchain):
         logger.info("Could not find transaction for hash %s " % hash)
         return None, -1
 
-    def AddBlockDirectly(self, block):
+    def AddBlockDirectly(self, block, do_persist_complete=True):
+        # Adds a block when importing, which skips adding
+        # the block header
         if block.Index != self.Height + 1:
             raise Exception("Invalid block")
-        if block.Index == len(self._header_index):
-            self.AddHeader(block.Header)
         self.Persist(block)
-        self.OnPersistCompleted(block)
+        if do_persist_complete:
+            self.OnPersistCompleted(block)
 
     def AddBlockFromImport(self, block, do_persist_complete=True):
         if block.Index != self.Height + 1:
@@ -817,8 +818,6 @@ class LevelDBBlockchain(Blockchain):
     def PersistBlocks(self):
 
         if not self._paused:
-            #            logger.info("PERRRRRSISST:: Hheight, b height, cache: %s/%s %s  --%s %s" % (self.Height, self.HeaderHeight, len(self._block_cache), self.CurrentHeaderHash, self.BlockSearchTries))
-
             while not self._disposed:
 
                 if len(self._header_index) <= self._current_block_height + 1:
