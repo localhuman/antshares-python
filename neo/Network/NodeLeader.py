@@ -9,7 +9,6 @@ from neo.Network.NeoNode import NeoNode
 from neo.Settings import settings
 from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.internet import reactor, task
-from twisted.internet.endpoints import TCP4ServerEndpoint
 
 
 class NeoClientFactory(ReconnectingClientFactory):
@@ -118,17 +117,17 @@ class NodeLeader:
 
     def Start(self):
         """Start connecting to the node list."""
-        # start up endpoints
         start_delay = 0
         for bootstrap in settings.SEED_LIST:
             host, port = bootstrap.split(":")
-            reactor.callLater(start_delay, self.SetupConnection, host, port)
+            setupConnDeferred = task.deferLater(reactor, start_delay, self.SetupConnection, host, port)
+            setupConnDeferred.addErrback(self.onSetupConnectionErr)
             start_delay += 1
 
         # check in on peers every 4 mins
         self.peer_check_loop = task.LoopingCall(self.PeerCheckLoop)
-        peer_loop_deferred = self.peer_check_loop.start(240, now=False)
-        peer_loop_deferred.addErrback(self.OnPeerLoopError)
+        peerLoopDeferred = self.peer_check_loop.start(240, now=False)
+        peerLoopDeferred.addErrback(self.OnPeerLoopError)
 
         if settings.ACCEPT_INCOMING_PEERS:
             reactor.listenTCP(settings.NODE_PORT, NeoClientFactory(incoming_client=True))
@@ -160,11 +159,15 @@ class NodeLeader:
         addr = '%s:%s' % (host, port)
         if addr not in self.ADDRS and len(self.Peers) < settings.CONNECTED_PEER_MAX and addr not in self.DEAD_ADDRS:
             self.ADDRS.append(addr)
-            reactor.callLater(index * 10, self.SetupConnection, host, port)
+            setupConnDeferred = task.deferLater(reactor, index * 10, self.SetupConnection, host, port)
+            setupConnDeferred.addErrback(self.onSetupConnectionErr)
 
     def SetupConnection(self, host, port):
         if len(self.Peers) < settings.CONNECTED_PEER_MAX:
-            reactor.connectTCP(host, int(port), NeoClientFactory(), timeout=120)
+            try:
+                reactor.connectTCP(host, int(port), NeoClientFactory(), timeout=120)
+            except Exception as e:
+                logger.error("Could not connect TCP to %s:%s " % (host, port))
 
     def Shutdown(self):
         """Disconnect all connected peers."""
@@ -176,7 +179,7 @@ class NodeLeader:
             p.Disconnect()
 
     def OnPeerLoopError(self, err):
-        print("Error on Peer check loop %s " % err)
+        logger.error("Error on Peer check loop %s " % err)
 
     def AddConnectedPeer(self, peer):
         """
@@ -207,6 +210,9 @@ class NodeLeader:
         if peer in self.Peers:
             self.Peers.remove(peer)
 
+    def onSetupConnectionErr(self, err):
+        logger.error("On setup connectioin error! %s" % err)
+
     def PeerCheckLoop(self):
         # often times things will get stuck on 1 peer so
         # every so often we will try to reconnect to peers
@@ -219,12 +225,14 @@ class NodeLeader:
         for addr in self.ADDRS:
             if addr not in connected and len(self.Peers) < settings.CONNECTED_PEER_MAX and addr not in self.DEAD_ADDRS:
                 host, port = addr.split(":")
-                reactor.callLater(start_delay, self.SetupConnection, host, port)
+                setupConnDeferred = task.deferLater(reactor, start_delay, self.SetupConnection, host, port)
+                setupConnDeferred.addErrback(self.onSetupConnectionErr)
+
                 start_delay += 1
 
     def ResetBlockRequestsAndCache(self):
         """Reset the block request counter and its cache."""
-        logger.debug("Resseting Block requests")
+        logger.debug("Resetting Block requests")
         self.MissionsGlobal = []
         BC.Default().BlockSearchTries = 0
         for p in self.Peers:
@@ -317,7 +325,6 @@ class NodeLeader:
             pass
 
         relayed = self.RelayDirectly(inventory)
-        # self.
         return relayed
 
     def GetTransaction(self, hash):
