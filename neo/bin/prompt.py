@@ -87,7 +87,7 @@ class PromptInterface:
 
     go_on = True
 
-    _walletdb_loop = None
+    wallet_loop_deferred = None
 
     Wallet = None
 
@@ -313,13 +313,15 @@ class PromptInterface:
                 print("Please specify a path")
 
     def start_wallet_loop(self):
-        self._walletdb_loop = task.LoopingCall(self.Wallet.ProcessBlocks)
-        loop_deferred = self._walletdb_loop.start(1)
-        loop_deferred.addErrback(self.on_looperror)
+        if self.wallet_loop_deferred:
+            self.stop_wallet_loop()
+        walletdb_loop = task.LoopingCall(self.Wallet.ProcessBlocks)
+        self.wallet_loop_deferred = walletdb_loop.start(1)
+        self.wallet_loop_deferred.addErrback(self.on_looperror)
 
     def stop_wallet_loop(self):
-        self._walletdb_loop.stop()
-        self._walletdb_loop = None
+        self.wallet_loop_deferred.cancel()
+        self.wallet_loop_deferred = None
 
     def do_close_wallet(self):
         if self.Wallet:
@@ -964,7 +966,7 @@ class PromptInterface:
                 "Cannot configure %s try 'config sc-events on|off', 'config debug on|off', 'config sc-debug-notify on|off', 'config vm-log on|off', or 'config maxpeers {num_peers}'" % what)
 
     def on_looperror(self, err):
-        logger.error("On DB loop error! %s " % err)
+        logger.debug("On DB loop error! %s " % err)
 
     def run(self):
         dbloop = task.LoopingCall(Blockchain.Default().PersistBlocks)
@@ -1157,7 +1159,7 @@ def main():
 
     # Run things
 
-    d = reactor.callInThread(cli.run)
+    reactor.callInThread(cli.run)
 
     NodeLeader.Instance().Start()
 
