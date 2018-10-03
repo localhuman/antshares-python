@@ -1053,6 +1053,8 @@ class Wallet:
 
         paycoins = {}
 
+#        exclude_vin = [CoinReference(prev_hash=UInt256.ParseString('0x2d886781892b64c5a3f6f3cf5ab5355a66c5df34dd562f4d509d11f5b2b9c848'),prev_index=0)]
+
         self._vin_exclude = exclude_vin
 
         for assetId, amount in paytotal.items():

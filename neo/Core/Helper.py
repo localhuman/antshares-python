@@ -180,7 +180,7 @@ class Helper:
 
         for i in range(0, len(hashes)):
             verification = verifiable.Scripts[i].VerificationScript
-
+            print("Verifying hash %s %s" % (hashes[i].Data, hashes[i].To0xString()))
             if len(verification) == 0:
                 sb = ScriptBuilder()
                 sb.EmitAppCall(hashes[i].Data)

@@ -43,8 +43,8 @@
     }
   },
   "ApplicationConfiguration": {
-    "DataDirectoryPath": "Chains/Main2",
-    "NotificationDataPath": "Chains/Main_Notif2",
+    "DataDirectoryPath": "Chains/Main",
+    "NotificationDataPath": "Chains/Main_Notif",
     "RPCPort": 10332,
     "NodePort": 10333,
     "WsPort": 10334,
