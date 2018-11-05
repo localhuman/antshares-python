@@ -16,6 +16,7 @@ from tqdm import trange
 from prompt_toolkit import prompt
 import io
 import binascii
+from neo.Implementations.Notifications.LevelDB.NotificationDB import NotificationDB
 
 
 def main():
@@ -75,8 +76,20 @@ def main():
     header_hash_list = []
 
     with open(file_path, 'rb') as file_input:
+        total_blocks_available = int.from_bytes(file_input.read(4), 'little')
+
+    if args.notifications:
+        store_notifications = True
+
+    header_hash_list = []
+
+    with open(file_path, 'rb') as file_input:
 
         total_blocks_available = int.from_bytes(file_input.read(4), 'little')
+
+        if total_blocks_available == 0:
+            total_blocks_available = int.from_bytes(file_input.read(4), 'little')
+
         total_blocks = total_blocks_available
         if args.totalblocks and args.totalblocks < total_blocks and args.totalblocks > 0:
             total_blocks = args.totalblocks
@@ -114,6 +127,9 @@ def main():
 
         chain = Blockchain.Default()
 
+        if store_notifications:
+            NotificationDB.instance().start()
+
         stream = MemoryStream()
         reader = BinaryReader(stream)
         block = Block()
@@ -133,7 +149,7 @@ def main():
 
             # add
             if block.Index > start_block:
-                chain.AddBlockFromImport(block, do_persist_complete=store_notifications)
+                chain.AddBlockDirectly(block, do_persist_complete=store_notifications)
 
             # reset blockheader
             block._header = None
@@ -145,6 +161,7 @@ def main():
     print("Wrote blocks.  Now writing headers")
 
     chain = Blockchain.Default()
+
     # reset header hash list
     chain._db.delete(DBPrefix.IX_HeaderHashList)
 

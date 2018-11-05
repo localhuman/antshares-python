@@ -5,16 +5,19 @@ from neo.SmartContract.ContractParameter import ContractParameter
 from neo.Prompt.Commands.Invoke import test_deploy_and_invoke, DEFAULT_MIN_FEE
 from neocore.Fixed8 import Fixed8
 from boa.compiler import Compiler
-from logzero import logger
 import binascii
 from neo.Core.State.ContractState import ContractPropertyState
 import os
 import json
+import traceback
 from neocore.BigInteger import BigInteger
+from neo.Settings import settings
+from neo.logging import log_manager
+
+logger = log_manager.getLogger()
 
 
 def LoadAndRun(arguments, wallet):
-
     arguments, from_addr = get_from_addr(arguments)
 
     path = get_arg(arguments)
@@ -35,16 +38,17 @@ def LoadAndRun(arguments, wallet):
             DoRun(script, arguments, wallet, path, from_addr=from_addr)
 
     except Exception as e:
+        traceback.print_stack()
+        traceback.print_exc(e)
         print("Could not load script %s " % e)
 
 
 def BuildAndRun(arguments, wallet, verbose=True, min_fee=DEFAULT_MIN_FEE, invocation_test_mode=True):
-
     arguments, from_addr = get_from_addr(arguments)
     arguments, invoke_attrs = get_tx_attr_from_args(arguments)
     arguments, owners = get_owners_from_params(arguments, wallet)
     path = get_arg(arguments)
-    contract_script = Compiler.instance().load_and_save(path)
+    contract_script = Compiler.instance().load_and_save(path, use_nep8=settings.COMPILER_NEP_8)
 
     newpath = path.replace('.py', '.avm')
     logger.info("Saved output to %s " % newpath)
@@ -63,7 +67,6 @@ def BuildAndRun(arguments, wallet, verbose=True, min_fee=DEFAULT_MIN_FEE, invoca
 def DoRun(contract_script, arguments, wallet, path, verbose=True,
           from_addr=None, min_fee=DEFAULT_MIN_FEE, invocation_test_mode=True,
           debug_map=None, invoke_attrs=None, owners=None):
-
     test = get_arg(arguments, 1)
 
     if test is not None and test == 'test':
@@ -114,7 +117,6 @@ def DoRun(contract_script, arguments, wallet, path, verbose=True,
 
 
 def TestBuild(script, invoke_args, wallet, plist='05', ret='05', dynamic=False, invoke_attrs=None, owners=None):
-
     properties = ContractPropertyState.HasStorage
 
     if dynamic:

@@ -43,8 +43,8 @@
     }
   },
   "ApplicationConfiguration": {
-    "DataDirectoryPath": "Chains/Main2",
-    "NotificationDataPath": "Chains/Main_Notif2",
+    "DataDirectoryPath": "Chains/Main",
+    "NotificationDataPath": "Chains/Main_Notif",
     "RPCPort": 10332,
     "NodePort": 10333,
     "WsPort": 10334,
@@ -53,9 +53,10 @@
     ],
     "SslCert": "",
     "SslCertPassword": "",
-    "BootstrapFile": "https://s3.us-east-2.amazonaws.com/cityofzion/bootstrap_main/Main2600xxx.tar.gz",
-    "NotificationBootstrapFile": "https://s3.us-east-2.amazonaws.com/cityofzion/bootstrap_main/MainNotif2600xxx.tar.gz",
+    "BootstrapFile": "https://s3.us-east-2.amazonaws.com/cityofzion/bootstrap_main/Main2891xxx.tar.gz",
+    "NotificationBootstrapFile": "https://s3.us-east-2.amazonaws.com/cityofzion/bootstrap_main/MainNotif2891xxx.tar.gz",
     "DebugStorage": 1,
-    "AcceptIncomingPeers": false
+    "AcceptIncomingPeers": false,
+    "CompilerNep8": false
   }
 }

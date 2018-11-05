@@ -1,5 +1,4 @@
 import plyvel
-from logzero import logger
 from neo.EventHub import events
 from neo.SmartContract.SmartContractEvent import SmartContractEvent, NotifyEvent, NotifyType
 from neo.Core.State.ContractState import ContractState
@@ -7,6 +6,9 @@ from neo.Settings import settings
 from neo.Core.Blockchain import Blockchain
 from neo.Core.Helper import Helper
 from neocore.UInt160 import UInt160
+from neo.logging import log_manager
+
+logger = log_manager.getLogger('db')
 
 
 class NotificationPrefix:
@@ -23,7 +25,6 @@ class NotificationPrefix:
 
 
 class NotificationDB:
-
     __instance = None
 
     _events_to_write = None
@@ -200,10 +201,9 @@ class NotificationDB:
             token_write_batch = token_db.write_batch()
 
             for token_event in self._new_contracts_to_write:
-
                 hash_data = token_event.ToByteArray()
                 hash_key = token_event.contract.Code.ScriptHash().ToBytes()
-#                logger.info("persist new NEP5 contract: %s " % (hash_key))
+                #                logger.info("persist new NEP5 contract: %s " % (hash_key))
                 token_write_batch.put(hash_key, hash_data)
 
             token_write_batch.write()
@@ -294,8 +294,6 @@ class NotificationDB:
         results = []
         for val in tokens_snapshot.iterator(include_key=False):
             event = SmartContractEvent.FromByteArray(val)
-            # for get_tokens calls, we dont want to send the whole script
-            event.contract.Code.Script = bytearray()
             results.append(event)
         return results
 

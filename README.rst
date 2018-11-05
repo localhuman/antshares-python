@@ -1,5 +1,5 @@
 .. image:: http://res.cloudinary.com/vidsy/image/upload/v1503160820/CoZ_Icon_DARKBLUE_200x178px_oq0gxm.png
-   :alt: CoZ logo
+    :alt: CoZ logo
 
 neo-python
 ----------
@@ -28,17 +28,18 @@ What does it currently do
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  This project aims to be a full port of the original C# `NEO
-   project <https://github.com/neo-project>`__
+   project <https://github.com/neo-project>`_
 -  Run a Python based P2P node
 -  Interactive CLI for configuring node and inspecting blockchain
 -  Build, deploy, and run smart contracts
 -  Runs smart contracts on the blockchain in a Python virtual machine
 -  Very basic Wallet functionality (not fully tested, please do not use
    on mainnet)
--  `NEP2 <https://github.com/neo-project/proposals/blob/master/nep-2.mediawiki%3E>`__
+-  `NEP2 <https://github.com/neo-project/proposals/blob/master/nep-2.mediawiki>`_
    and
-   `NEP5 <https://github.com/neo-project/proposals/blob/master/nep-5.mediawiki>`__
+   `NEP5 <https://github.com/neo-project/proposals/blob/master/nep-5.mediawiki>`_
    compliant wallet functionality
+- `NEP-7 <https://github.com/neo-project/proposals/blob/master/nep-7.mediawiki>`_ and `NEP-8 <https://github.com/neo-project/proposals/blob/c20182cecd92102b9e5a3158a005762eefb8dbdf/nep-8.mediawiki>`_ support
 -  RPC Client
 -  RPC server
 -  Notification Server ( for viewing transfers of NEP5 tokens )
@@ -55,19 +56,19 @@ Documentation
 
 The full documentation on how to install, configure and use neo-python
 can be found at `Read The
-Docs <https://neo-python.readthedocs.io/en/latest/>`__.
+Docs <https://neo-python.readthedocs.io/en/latest/>`_.
 
 Get help or give help
 ~~~~~~~~~~~~~~~~~~~~~
 
 -  Open a new
-   `issue <https://github.com/CityOfZion/neo-python/issues/new>`__ if
+   `issue <https://github.com/CityOfZion/neo-python/issues/new>`_ if
    you encounter a problem.
--  Or ping **@localhuman** or **@metachris** on the `NEO
-   Discord <https://discord.gg/R8v48YA>`__.
--  Pull requests welcome. You can help with wallet functionality,
-   writing tests or documentation, or on any other feature you deem
-   awesome.
+-  Or ping **@localhuman**, **@metachris** or **@ixje** on the `NEO
+   Discord <https://discord.gg/R8v48YA>`_.
+-  Pull requests welcome. Have a look at the issue list for ideas.
+   You can help with wallet functionality, writing tests or documentation,
+   or on any other feature you deem awesome.
 
 Getting started
 ---------------
@@ -75,15 +76,14 @@ Getting started
 neo-python has two System dependencies (everything else is covered with
 ``pip``):
 
--  `LevelDB <https://github.com/google/leveldb>`__
+-  `LevelDB <https://github.com/google/leveldb>`_
 -  `Python
-   3.6+ <https://www.python.org/downloads/release/python-364/>`__ (3.5
-   and below is not supported)
+   3.6 <https://www.python.org/downloads/release/python-366/>`_ or `Python 3.7 <https://www.python.org/downloads/release/python-370/>`_ (3.5 and below is not supported)
 
 We have published a Youtube
-`video <https://www.youtube.com/watch?v=ZZXz261AXrM>`__ to help get you
+`video <https://www.youtube.com/watch?v=ZZXz261AXrM>`_ to help get you
 started. There are many more videos under the
-`CityOfZion <https://www.youtube.com/channel/UCzlQUNLrRa8qJkz40G91iJg>`__
+`CityOfZion <https://www.youtube.com/channel/UCzlQUNLrRa8qJkz40G91iJg>`_
 Youtube channel, check them out.
 
 Docker
@@ -91,7 +91,7 @@ Docker
 
 Using Docker is another option to run neo-python. There are example
 Dockerfiles provided in the
-`/docker folder <https://github.com/CityOfZion/neo-python/tree/development/docker>`__,
+`/docker folder <https://github.com/CityOfZion/neo-python/tree/development/docker>`_,
 and we have an image on Docker hub, tagged after the neo-python
 releases: https://hub.docker.com/r/cityofzion/neo-python/
 
@@ -113,13 +113,26 @@ OSX
 Ubuntu/Debian 16.10+
 ^^^^^^^^^^^^^^^^^^^^
 
-Ubuntu starting at 16.10 supports Python 3.6 in the official
-repositories, and you can just install Python 3.6 and all the system
-dependencies like this:
+Ubuntu starting at 16.10 supports Python 3.6+ in the official repositories.
+
+First, ensure Ubuntu is fully up-to-date with this:
 
 ::
 
-    apt-get install python3.6 python3.6-dev python3.6-venv python3-pip libleveldb-dev libssl-dev g++
+   sudo apt-get update && sudo apt-get upgrade
+
+You can install Python 3.7 and all the system dependencies like this:
+
+::
+
+   sudo apt-get install python3.7 python3.7-dev python3.7-venv python3-pip libleveldb-dev libssl-dev g++
+
+
+Or, you can install Python 3.6 and all the system dependencies like this:
+
+::
+
+    sudo apt-get install python3.6 python3.6-dev python3.6-venv python3-pip libleveldb-dev libssl-dev g++
 
 Older Ubuntu versions (eg. 16.04)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -158,25 +171,25 @@ Centos/Redhat/Fedora
 Windows
 ^^^^^^^
 
-Help needed. Installing the Python package plyvel seems to require C++
-compiler support tied to Visual Studio and libraries. Refer to
-`documentation <https://neo-python.readthedocs.io/en/latest/installwindows.html>`__.
-
-Currently you probably should use the Linux subsystem with Ubuntu, or a
+Currently, you should use the Linux subsystem with Ubuntu, or a
 Virtual Machine with Linux. You can find more information and a guide
 for setting up the Linux subsystem
 `here <https://medium.com/@gubanotorious/installing-and-running-neo-python-on-windows-10-284fb518b213>`__.
 
 Installing "Ubuntu" from Microsoft Store installs Ubuntu 16.04. You should install Ubuntu 18.04 from Microsoft Store found here: https://www.microsoft.com/en-us/p/ubuntu-1804/9n9tngvndl3q?activetab=pivot%3aoverviewtab
 
-Python 3.6
-~~~~~~~~~~
+Help needed for running natively. Installing the Python package plyvel seems to require C++
+compiler support tied to Visual Studio and libraries. Refer to
+`documentation <https://neo-python.readthedocs.io/en/latest/installwindows.html>`__.
+
+Python 3.6+
+~~~~~~~~~~~
 
 neo-python is compatible with **Python 3.6 and later**.
 
-On \*nix systems, install Python 3.6 via your package manager, or
+On \*nix systems, install Python 3.6 or Python 3.7 via your package manager, or
 download an installation package from the `official
-homepage <https://www.python.org/downloads/release/python-364/>`__.
+homepage <https://www.python.org/downloads/>`__.
 
 
 Install
@@ -193,12 +206,16 @@ could lead to version conflicts.
 
     git clone https://github.com/CityOfZion/neo-python.git
     cd neo-python
-    
+
     # if you want to use the development branch, switch now
     git checkout development
-    
-    # create virtual environment and activate
-    python3 -m venv venv
+
+    # create virtual environment using Python 3.7 and activate or skip to the next step for Python 3.6
+    python3.7 -m venv venv
+    source venv/bin/activate
+
+    # create virtual environment using Python 3.6 and activate
+    python3.6 -m venv venv
     source venv/bin/activate
 
     # install the package in an editable form
@@ -212,8 +229,12 @@ could lead to version conflicts.
     mkdir myproject
     cd myproject
 
-    # create virtual environment and activate
-    python3 -m venv venv
+    # create virtual environment using Python 3.7 and activate or skip to the next step for Python 3.6
+    python3.7 -m venv venv
+    source venv/bin/activate
+
+    # create virtual environment using Python 3.6 and activate
+    python3.6 -m venv venv
     source venv/bin/activate
 
     (venv) pip install neo-python
@@ -264,37 +285,69 @@ Let's query for a block in the current server by hash or by block index:
     neo>
 
 Bootstrapping the Blockchain
-----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you use neo-python for the first time, you need to synchronize the
 blockchain, which may take a long time. Included in this project is the script
-``np-bootstrap`` to automatically download a chain directory for you. To
-bootstrap for testnet, run ``np-bootstrap``, get a cup of coffee
-and wait. To bootstrap for mainnet, use ``np-bootstrap -m`` and
-get 8 cups of coffee (3.3 GB file).
+``np-bootstrap`` to automatically download a chain directory for you.
 
-Important: do not use the chain files from
-https://github.com/CityOfZion/awesome-neo.git, they will not work with
-neo-python.
-
-Available Wallet commands
-~~~~~~~~~~~~~~~~~~~~~~~~~
+np-bootstrap Usage
+^^^^^^^^^^^^^^^^^^
 
 ::
 
-    np-prompt
-    NEO cli. Type 'help' to get started
+    $ np-bootstrap -h
+    usage: np-bootstrap [-h] [-m] [-c CONFIG] [-n] [-s] [--datadir DATADIR]
 
-    neo> help
+    optional arguments:
+      -h, --help            show this help message and exit
+      -m, --mainnet         use MainNet instead of the default TestNet
+      -c CONFIG, --config CONFIG
+                            Use a specific config file
+      -n, --notifications   Bootstrap notification database
+      -s, --skipconfirm     Bypass warning about overwritting data in Chains/SC234
+      --datadir DATADIR     Absolute path to use for database directories
+
+Bootrapping Testnet
+^^^^^^^^^^^^^^^^^^^
+
+To bootstrap the testnet blockchain, run ``np-bootstrap``, get a cup of coffee
+and wait. Then, bootstrap the testnet notifications database with ``np-bootstrap -n``.
+
+Bootstrapping Mainnet
+^^^^^^^^^^^^^^^^^^^^^
+
+To bootstrap the mainnet blockchain, run ``np-bootstrap -m`` and get 8 cups of coffee
+(9+ GB file). Then, bootstrap the mainnet notifications database with
+``np-bootstrap -m -n``.
+
+**Important:** do not use the chain files from
+https://github.com/CityOfZion/awesome-neo.git, they will not work with
+neo-python.
+
+Basic Wallet commands
+~~~~~~~~~~~~~~~~~~~~~
+
+::
 
     create wallet {wallet_path}
     open wallet {wallet_path}
+    wallet close
 
-    wallet { verbose } { rebuild } {rebuild BLOCK_HEIGHT}
-    export wif { ADDRESS }
-    import wif { WIF }
+    wallet (verbose)
+    wallet rebuild (start block)
+    wallet create_addr {number of addresses}
+    wallet delete_addr {addr}
+    
+    export wif {address}
+    import wif {wif}
+    
+    export nep2 {address}
+    import nep2 {nep2_encrypted_key}
+    
+    send {assetId or name} {address} {amount} (--from-addr={addr}) (--fee={priority_fee}) (--owners=[{addr}, ...]) (--tx-attr=[{"usage": <value>,"data":"<remark>"}, ...])
 
-    send { ASSET_ID } { ADDRESS } { AMOUNT }
+For a complete list of commands use ``help``.
 
 Running on MainNet
 ~~~~~~~~~~~~~~~~~~
@@ -323,6 +376,7 @@ sure to check out the details of the parameters:
                             file. Default: 'dark'
       -v, --verbose         Show smart-contract events by default
       --datadir DATADIR     Absolute path to use for database directories
+      --maxpeers MAXPEERS   Max peers to use for P2P Joining
       --version             show program's version number and exit
 
 Logging
@@ -335,10 +389,9 @@ Currently, ``np-prompt`` logs to ``prompt.log``
 Tests
 -----
 
-Note that some of the unit tests use a giant blockchain fixture database
-(~800MB). This file is not kept in the repo, but are downloaded the
-first time the tests are run, this can take some time (depending on the
-internet connection), but happens only once.
+Note we make use of a Blockchain fixture database (~15 MB). This file is not kept in the repo,
+but is downloaded the first time the tests are run, this can take some time (depending on the internet connection),
+but happens only once.
 
 Useful commands
 ---------------
@@ -403,23 +456,23 @@ Troubleshooting
 If you run into problems, check these things before ripping out your
 hair:
 
--  Double-check that you are using Python 3.6.x
+-  Double-check that you are using Python 3.6.x or Python 3.7.x
 -  Update the project dependencies (``pip install -e .``)
 -  If you encounter any problems, please take a look at the
    `installation
-   section <https://neo-python.readthedocs.io/en/latest/install.html#further-install-notes>`__
+   section <https://neo-python.readthedocs.io/en/latest/install.html#further-install-notes>`_
    in the docs, and if that doesn't help open an issue. We'll try to
    help.
--  You can reach us on the `NEO Discord <https://discord.gg/R8v48YA>`__,
+-  You can reach us on the `NEO Discord <https://discord.gg/R8v48YA>`_,
    or simply file a `GitHub
-   issue <https://github.com/CityOfZion/neo-python/issues/new>`__.
+   issue <https://github.com/CityOfZion/neo-python/issues/new>`_.
 
 License
 -------
 
 -  Open-source
-   `MIT <https://github.com/CityOfZion/neo-python/blob/master/LICENSE.md>`__.
--  Contributors: [@localhuman](https://github.com/localhuman) (Creator), [@metachris](https://github.com/metachris), [@ixje](https://github.com/ixje), and [many more](https://github.com/CityOfZion/neo-python/graphs/contributors)
+   `MIT <https://github.com/CityOfZion/neo-python/blob/master/LICENSE.md>`_.
+-  Contributors: `@localhuman <https://github.com/localhuman>`_ (Creator), `@metachris <https://github.com/metachris>`_, `@ixje <https://github.com/ixje>`_, and `many more <https://github.com/CityOfZion/neo-python/graphs/contributors>`_
 
 Donations
 ---------

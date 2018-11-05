@@ -7,8 +7,10 @@ from neo.IO.MemoryStream import StreamManager
 from neo.SmartContract.ContractParameter import ContractParameter, ContractParameterType
 from neocore.IO.Mixins import SerializableMixin
 import binascii
-from logzero import logger
 from neo.Core.State.ContractState import ContractState
+from neo.logging import log_manager
+
+logger = log_manager.getLogger('vm')
 
 
 class SmartContractEvent(SerializableMixin):
@@ -29,7 +31,7 @@ class SmartContractEvent(SerializableMixin):
     in the smart contract.
     """
     RUNTIME_NOTIFY = "SmartContract.Runtime.Notify"  # payload: object[]
-    RUNTIME_LOG = "SmartContract.Runtime.Log"        # payload: bytes
+    RUNTIME_LOG = "SmartContract.Runtime.Log"  # payload: bytes
 
     EXECUTION = "SmartContract.Execution.*"
     EXECUTION_INVOKE = "SmartContract.Execution.Invoke"
@@ -159,6 +161,7 @@ class SmartContractEvent(SerializableMixin):
 
         if self.event_type in [SmartContractEvent.CONTRACT_CREATED, SmartContractEvent.CONTRACT_MIGRATED]:
             jsn['contract'] = self.contract.ToJson()
+            del jsn['contract']['code']['script']
 
         if self.token:
             jsn['token'] = self.token.ToJson()
@@ -174,7 +177,6 @@ class NotifyType:
 
 
 class NotifyEvent(SmartContractEvent):
-
     notify_type = None
 
     addr_to = None
@@ -255,8 +257,9 @@ class NotifyEvent(SmartContractEvent):
 
         elif self.event_payload.Type == ContractParameterType.String:
             self.notify_type = self.event_payload.Value
-#        else:
-#            logger.debug("NOTIFY %s %s" % (self.event_payload.Type, self.event_payload.Value))
+
+    #        else:
+    #            logger.debug("NOTIFY %s %s" % (self.event_payload.Type, self.event_payload.Value))
 
     def SerializePayload(self, writer):
 
@@ -266,7 +269,10 @@ class NotifyEvent(SmartContractEvent):
             writer.WriteUInt160(self.addr_from)
             writer.WriteUInt160(self.addr_to)
 
-            if self.Amount < 0xffffffffffffffff:
+            if self.Amount < 0:
+                logger.warn("Transfer Amount less than 0")
+                writer.WriteVarInt(0)
+            elif self.Amount < 0xffffffffffffffff:
                 writer.WriteVarInt(self.amount)
             else:
                 logger.warn("Writing Payload value amount greater than ulong long is not allowed.  Setting to ulong long max")
@@ -292,5 +298,5 @@ class NotifyEvent(SmartContractEvent):
         jsn['notify_type'] = self.Type
         jsn['addr_to'] = self.AddressTo
         jsn['addr_from'] = self.AddressFrom
-        jsn['amount'] = self.Amount
+        jsn['amount'] = "%s" % self.Amount
         return jsn

@@ -4,6 +4,7 @@ from neo.Wallets.utils import to_aes_key
 from neo.Prompt.Commands.Wallet import AddAlias
 from neo.Prompt.Utils import parse_param, lookup_addr_str
 from neo.Core.Blockchain import Blockchain
+from neo.Core.Helper import Helper
 from neocore.UInt160 import UInt160
 from neocore.Fixed8 import Fixed8
 from neocore.KeyPair import KeyPair
@@ -16,12 +17,12 @@ import binascii
 
 class UserWalletTestCase(WalletFixtureTestCase):
 
-    wallet_1_script_hash = UInt160(data=b'S\xefB\xc8\xdf!^\xbeZ|z\xe8\x01\xcb\xc3\xac/\xacI)')
+    wallet_1_script_hash = UInt160(data=b'\x1c\xc9\xc0\\\xef\xff\xe6\xcd\xd7\xb1\x82\x81j\x91R\xec!\x8d.\xc0')
 
-    wallet_1_addr = 'APRgMZHZubii29UXF9uFa6sohrsYupNAvx'
+    wallet_1_addr = 'AJQ6FoaSXDFzA6wLnyZ1nFN7SGSN2oNTc3'
 
-    import_watch_addr = UInt160(data=b'\xaf\x12\xa8h{\x14\x94\x8b\xc4\xa0\x08\x12\x8aU\nci[\xc1\xa5')
-    watch_addr_str = 'AXjaFSP23Jkbe6Pk9pPGT6NBDs1HVdqaXK'
+    import_watch_addr = UInt160(data=b'\x08t/\\P5\xac-\x0b\x1c\xb4\x94tIyBu\x7f1*')
+    watch_addr_str = 'AGYaEi3W6ndHPUmW7T12FFfsbQ6DWymkEm'
     _wallet1 = None
 
     @property
@@ -50,19 +51,22 @@ class UserWalletTestCase(WalletFixtureTestCase):
 
         addr = jsn['addresses'][0]
 
-        self.assertEqual(self.wallet_1_addr, addr['script_hash'])
+        self.assertEqual(self.wallet_1_addr, addr['address'])
+        self.assertEqual(str(Helper.AddrStrToScriptHash(self.wallet_1_addr)), addr['script_hash'])
 
-        balance_should_be = Fixed8.FromDecimal(100)
+        gas_balance_should_be = Fixed8.FromDecimal(13.9998)
 
         gas_balance = wallet.GetBalance(self.GAS)
 
-        self.assertEqual(balance_should_be, gas_balance)
+        self.assertEqual(gas_balance_should_be, gas_balance)
+
+        neo_balance_should_be = Fixed8.FromDecimal(50)
 
         neo_balance = wallet.GetBalance(self.NEO)
 
-        self.assertEqual(balance_should_be, neo_balance)
+        self.assertEqual(neo_balance_should_be, neo_balance)
 
-        self.assertEqual(wallet.WalletHeight, 750131)
+        self.assertEqual(wallet.WalletHeight, 12351)
 
     def test_2_transactions(self):
 
@@ -70,7 +74,7 @@ class UserWalletTestCase(WalletFixtureTestCase):
 
         transactions = wallet.GetTransactions()
 
-        self.assertEqual(2, len(transactions))
+        self.assertEqual(9, len(transactions))
 
     def test_3_import_watch_addr(self):
 
@@ -88,7 +92,7 @@ class UserWalletTestCase(WalletFixtureTestCase):
         found = False
         for addr in all_addr:
 
-            if addr['script_hash'] == self.watch_addr_str:
+            if addr['address'] == self.watch_addr_str:
                 self.assertEqual(addr['is_watch_only'], True)
                 found = True
 
@@ -118,7 +122,7 @@ class UserWalletTestCase(WalletFixtureTestCase):
 
         wif = key.Export()
 
-        self.assertEqual(wif, 'KzV2riT1Vqoi5th1uiCTN5adEtJwXevFxf7Nygant1sBaRfncmbz')
+        self.assertEqual(wif, 'Ky94Rq8rb1z8UzTthYmy1ApbZa9xsKTvQCiuGUZJZbaDJZdkvLRV')
 
     def test_6_import_wif(self):
 
@@ -137,15 +141,15 @@ class UserWalletTestCase(WalletFixtureTestCase):
 
         wallet = self.GetWallet1()
 
-        token_hash = b'f8d448b227991cf07cb96a6f9c0322437f1599b9'
+        token_hash = b'31730cc9a1844891a3bafd1aa929a4142860d8d3'
         contract = Blockchain.Default().GetContract(token_hash)
 
         token = NEP5Token(binascii.hexlify(contract.Code.Script))
         token.Query()
 
-        self.assertEqual(token.name, 'NEP5 Standard')
+        self.assertEqual(token.name, 'NEX Template V4')
         self.assertEqual(token.decimals, 8)
-        self.assertEqual(token.symbol, 'NEP5')
+        self.assertEqual(token.symbol, 'NXT4')
 
         wallet.AddNEP5Token(token)
 

@@ -74,8 +74,6 @@ def main():
             if len(block.Transactions) < 1:
                 raise Exception("Block %s has no transactions %s " % block.Index)
 
-            # output = binascii.unhexlify(block.ToArray())
-            # this saves a hex then unhex conversion
             output = Helper.ToStream(block)
 
             output_length = len(output).to_bytes(4, 'little')

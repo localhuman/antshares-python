@@ -6,8 +6,6 @@ import json
 import os
 import psutil
 import traceback
-import logging
-from logzero import logger
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.shortcuts import print_formatted_text, PromptSession
@@ -27,13 +25,12 @@ from neo.Implementations.Blockchains.LevelDB.DebugStorage import DebugStorage
 from neo.Implementations.Wallets.peewee.UserWallet import UserWallet
 from neo.Implementations.Notifications.LevelDB.NotificationDB import NotificationDB
 from neo.Network.NodeLeader import NodeLeader, NeoClientFactory
+from neo.Prompt.Commands.config import start_output_config
 from neo.Prompt.Commands.BuildNRun import BuildAndRun, LoadAndRun
 from neo.Prompt.Commands.Invoke import InvokeContract, TestInvokeContract, test_invoke
 from neo.Prompt.Commands.LoadSmartContract import LoadContract, GatherContractDetails, ImportContractAddr, \
     ImportMultiSigContractAddr
 from neo.Prompt.Commands.Send import construct_and_send, parse_and_sign
-from neo.contrib.nex.withdraw import RequestWithdrawFrom, PrintHolds, DeleteHolds, WithdrawOne, WithdrawAll, \
-    CancelWithdrawalHolds, ShowCompletedHolds, CleanupCompletedHolds
 
 from neo.Prompt.Commands.Tokens import token_approve_allowance, token_get_allowance, token_send, token_send_from, \
     token_mint, token_crowdsale_register, token_history
@@ -46,7 +43,11 @@ from neo.Settings import settings, PrivnetConnectionError
 from neo.UserPreferences import preferences
 from neocore.KeyPair import KeyPair
 from neocore.UInt256 import UInt256
+
 from neo.contrib.nex.setup_sale import setupSale
+from neo.logging import log_manager
+
+logger = log_manager.getLogger()
 
 
 class PromptFileHistory(FileHistory):
@@ -107,11 +108,12 @@ class PromptInterface:
                 'mem # returns memory in use and number of buffers',
                 'nodes # returns connected peers',
                 'state',
-                'config debug {on/off}',
+                'config output_levels (interactive)',
                 'config sc-events {on/off}',
                 'config maxpeers {num_peers}',
                 'config node-requests {reqsize} {queuesize}',
                 'config node-requests {slow/normal/fast}',
+                'config compiler-nep8 {on/off}',
                 'build {path/to/file.py} (test {params} {returntype} {needs_storage} {needs_dynamic_invoke} {is_payable} [{test_params} or --i]) --no-parse-addr (parse address strings to script hash bytearray)',
                 'load_run {path/to/file.avm} (test {params} {returntype} {needs_storage} {needs_dynamic_invoke} {is_payable} [{test_params} or --i]) --no-parse-addr (parse address strings to script hash bytearray)',
                 'import wif {wif}',
@@ -125,15 +127,15 @@ class PromptInterface:
                 'export nep2 {address}',
                 'open wallet {path}',
                 'create wallet {path}',
-                'wallet {verbose}',
+                'wallet (verbose)',
                 'wallet claim (max_coins_to_claim)',
                 'wallet migrate',
-                'wallet rebuild {start block}',
-                'wallet create_addr {number of addresses <= 3}',
+                'wallet rebuild (start block)',
+                'wallet create_addr {number of addresses}',
                 'wallet delete_addr {addr}',
                 'wallet delete_token {token_contract_hash}',
                 'wallet alias {addr} {title}',
-                'wallet tkn_send {token symbol} {address_from} {address to} {amount} ',
+                'wallet tkn_send {token symbol} {address_from} {address to} {amount}',
                 'wallet tkn_send_from {token symbol} {address_from} {address to} {amount}',
                 'wallet tkn_approve {token symbol} {address_from} {address to} {amount}',
                 'wallet tkn_allowance {token symbol} {address_from} {address to}',
@@ -143,14 +145,8 @@ class PromptInterface:
                 'wallet unspent (neo/gas)',
                 'wallet split {addr} {asset} {unspent index} {divide into number of vins}',
                 'wallet close',
-                'withdraw_request {asset_name} {contract_hash} {to_addr} {amount}',
-                'withdraw holds # lists all current holds',
-                'withdraw completed # lists completed holds eligible for cleanup',
-                'withdraw cancel # cancels current holds',
-                'withdraw cleanup # cleans up completed holds',
-                'withdraw # withdraws the first hold availabe',
-                'withdraw all # withdraw all holds available',
-                'send {assetId or name} {address} {amount} (--from-addr={addr}) (--fee={priority_fee})',
+                'send {assetId or name} {address} {amount} (--from-addr={addr}) (--fee={priority_fee}) (--owners=[{addr}, ...]) (--tx-attr=[{"usage": <value>,"data":"<remark>"}, ...])',
+                'sendmany {number of outgoing tx} (--change-addr={addr}) (--from-addr={addr}) (--fee={priority_fee}) (--owners=[{addr}, ...]) (--tx-attr=[{"usage": <value>,"data":"<remark>"}, ...])',
                 'sign {transaction in JSON format}',
                 'testinvoke {contract hash} [{params} or --i] (--attach-neo={amount}, --attach-gas={amount}) (--from-addr={addr}) --no-parse-addr (parse address strings to script hash bytearray)',
                 'debugstorage {on/off/reset}'
@@ -178,11 +174,6 @@ class PromptInterface:
     def get_bottom_toolbar(self, cli=None):
         out = []
         try:
-            # Note: not sure if prompt-toolkit still supports foreground colors, couldn't get it to work
-            # out = [("class:command", '[%s] Progress: ' % settings.net_name),
-            #        ("class:number", str(Blockchain.Default().Height + 1)),
-            #        ("class:neo", '/'),
-            #        ("class:number", str(Blockchain.Default().HeaderHeight + 1))]
             return "[%s] Progress: %s/%s" % (settings.net_name,
                                              str(Blockchain.Default().Height + 1),
                                              str(Blockchain.Default().HeaderHeight + 1))
@@ -200,11 +191,11 @@ class PromptInterface:
                                 'watch_addr', 'contract_addr', 'testinvoke', 'tkn_send',
                                 'tkn_mint', 'tkn_send_from', 'tkn_approve', 'tkn_allowance',
                                 'tkn_register', 'build', 'notifications', 'tkn_history',
-                                'sign', 'send', 'withdraw', 'nep2', 'multisig_addr', 'token',
+                                'sign', 'send', 'sendmany', 'withdraw', 'nep2', 'multisig_addr', 'token',
                                 'claim', 'migrate', 'rebuild', 'create_addr', 'delete_addr',
                                 'delete_token', 'alias', 'unspent', 'split', 'close',
-                                'withdraw_reqest', 'holds', 'completed', 'cancel', 'cleanup',
-                                'all', 'debugstorage']
+                                'withdraw_reqest', 'completed', 'cancel', 'cleanup',
+                                'all', 'debugstorage', 'compiler-nep8', ]
 
         if self.Wallet:
             for addr in self.Wallet.Addresses:
@@ -462,45 +453,6 @@ class PromptInterface:
 
         print("Command export %s not found" % item)
 
-    def make_withdraw_request(self, arguments):
-        if not self.Wallet:
-            print("Please open a wallet")
-            return
-        if len(arguments) == 4:
-            RequestWithdrawFrom(self.Wallet, arguments[0], arguments[1], arguments[2], arguments[3])
-        else:
-            print("Incorrect arg length. Use 'withdraw_request {asset_id} {contract_hash} {to_addr} {amount}'")
-
-    def do_withdraw(self, arguments):
-        if not self.Wallet:
-            print("Please open a wallet")
-            return
-
-        item = get_arg(arguments, 0)
-
-        if item:
-
-            if item == 'holds':
-                PrintHolds(self.Wallet)
-            elif item == 'delete_holds':
-                index_to_delete = -1
-                if get_arg(arguments, 1) and int(get_arg(arguments, 1)) > -1:
-                    index_to_delete = int(get_arg(arguments, 1))
-                DeleteHolds(self.Wallet, index_to_delete)
-            elif item == 'cancel_holds':
-                if len(arguments) > 1:
-                    CancelWithdrawalHolds(self.Wallet, get_arg(arguments, 1))
-                else:
-                    print("Please specify contract hash to cancel holds for")
-            elif item == 'completed':
-                ShowCompletedHolds(self.Wallet)
-            elif item == 'cleanup':
-                CleanupCompletedHolds(self.Wallet)
-            elif item == 'all':
-                WithdrawAll(self.Wallet)
-        else:
-            WithdrawOne(self.Wallet)
-
     def do_notifications(self, arguments):
         if NotificationDB.instance() is None:
             print("No notification DB Configured")
@@ -547,10 +499,10 @@ class PromptInterface:
             print("Migrated wallet")
         elif item == 'create_addr':
             addresses_to_create = get_arg(arguments, 1)
-            CreateAddress(self, self.Wallet, addresses_to_create)
+            CreateAddress(self.Wallet, addresses_to_create)
         elif item == 'delete_addr':
             addr_to_delete = get_arg(arguments, 1)
-            DeleteAddress(self, self.Wallet, addr_to_delete)
+            DeleteAddress(self.Wallet, addr_to_delete)
         elif item == 'delete_token':
             token_to_delete = get_arg(arguments, 1)
             DeleteToken(self.Wallet, token_to_delete)
@@ -879,22 +831,8 @@ class PromptInterface:
     def configure(self, args):
         what = get_arg(args)
 
-        if what == 'debug':
-            c1 = get_arg(args, 1)
-            if c1 is not None:
-                c1 = c1.lower()
-                if c1 == 'on' or c1 == '1':
-                    print("Debug logging is now enabled")
-                    settings.set_loglevel(logging.DEBUG)
-                elif c1 == 'off' or c1 == '0':
-                    print("Debug logging is now disabled")
-                    settings.set_loglevel(logging.INFO)
-                else:
-                    print("Cannot configure log. Please specify on|off")
-
-            else:
-                print("Cannot configure log. Please specify on|off")
-
+        if what == 'output_levels':
+            start_output_config()
         elif what == 'sc-events':
             c1 = get_arg(args, 1)
             if c1 is not None:
@@ -960,10 +898,24 @@ class PromptInterface:
 
             else:
                 print("Maintaining current number of maxpeers")
+        elif what == 'compiler-nep8':
+            c1 = get_arg(args, 1)
+            if c1 is not None:
+                c1 = c1.lower()
+                if c1 == 'on' or c1 == '1':
+                    print("Compiler NEP8 instructions on")
+                    settings.COMPILER_NEP_8 = True
+                elif c1 == 'off' or c1 == '0':
+                    print("Compiler NEP8 instructions off")
+                    settings.COMPILER_NEP_8 = False
+                else:
+                    print("Cannot configure compiler NEP8 instructions. Please specify on|off")
+            else:
+                print("Cannot configure compiler NEP8 instructions. Please specify on|off")
 
         else:
             print(
-                "Cannot configure %s try 'config sc-events on|off', 'config debug on|off', 'config sc-debug-notify on|off', 'config vm-log on|off', or 'config maxpeers {num_peers}'" % what)
+                "Cannot configure %s try 'config sc-events on|off', 'config output_levels', 'config sc-debug-notify on|off', 'config vm-log on|off', config compiler-nep8 on|off, or 'config maxpeers {num_peers}'" % what)
 
     def on_looperror(self, err):
         logger.debug("On DB loop error! %s " % err)
@@ -1026,6 +978,8 @@ class PromptInterface:
                         self.show_wallet(arguments)
                     elif command == 'send':
                         self.do_send(arguments)
+                    elif command == 'sendmany':
+                        self.do_send_many(arguments)
                     elif command == 'sign':
                         self.do_sign(arguments)
                     elif command == 'block':
@@ -1087,6 +1041,8 @@ def main():
                        help="Use a private net instead of the default TestNet, optionally using a custom host (default: 127.0.0.1)")
     group.add_argument("--coznet", action="store_true", default=False,
                        help="Use the CoZ network instead of the default TestNet")
+    group.add_argument("-u", "--unittest", nargs="?", metavar="host", const=True, default=False,
+                       help="Use a private net instead of the default TestNet, optionally using a custom host (default: 127.0.0.1)")
     group.add_argument("-c", "--config", action="store", help="Use a specific config file")
 
     # Theme
@@ -1129,6 +1085,8 @@ def main():
             return
     elif args.coznet:
         settings.setup_coznet()
+    elif args.unittest:
+        settings.setup_unittest_net()
 
     # Logfile settings & setup
     logfile_fn = os.path.join(settings.DATA_DIR_PATH, 'prompt.log')

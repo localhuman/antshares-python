@@ -9,13 +9,12 @@ import shutil
 
 
 class UserWalletTestCase(WalletFixtureTestCase):
+    wallet_1_script_hash = UInt160(data=b'\x1c\xc9\xc0\\\xef\xff\xe6\xcd\xd7\xb1\x82\x81j\x91R\xec!\x8d.\xc0')
 
-    wallet_1_script_hash = UInt160(data=b'S\xefB\xc8\xdf!^\xbeZ|z\xe8\x01\xcb\xc3\xac/\xacI)')
+    wallet_1_addr = 'AJQ6FoaSXDFzA6wLnyZ1nFN7SGSN2oNTc3'
 
-    wallet_1_addr = 'APRgMZHZubii29UXF9uFa6sohrsYupNAvx'
-
-    import_watch_addr = UInt160(data=b'\xaf\x12\xa8h{\x14\x94\x8b\xc4\xa0\x08\x12\x8aU\nci[\xc1\xa5')
-    watch_addr_str = 'AXjaFSP23Jkbe6Pk9pPGT6NBDs1HVdqaXK'
+    import_watch_addr = UInt160(data=b'\x08t/\\P5\xac-\x0b\x1c\xb4\x94tIyBu\x7f1*')
+    watch_addr_str = 'AGYaEi3W6ndHPUmW7T12FFfsbQ6DWymkEm'
     _wallet1 = None
 
     @property
@@ -35,8 +34,7 @@ class UserWalletTestCase(WalletFixtureTestCase):
         return cls._wallet1
 
     def test_1_import_addr(self):
-
-        wallet = self.GetWallet1()
+        wallet = self.GetWallet1(recreate=True)
 
         self.assertEqual(len(wallet.LoadWatchOnly()), 0)
 
@@ -45,42 +43,39 @@ class UserWalletTestCase(WalletFixtureTestCase):
         self.assertEqual(len(wallet.LoadWatchOnly()), 1)
 
     def test_2_import_addr(self):
-
         wallet = self.GetWallet1()
 
         self.assertEqual(len(wallet.LoadWatchOnly()), 1)
 
-        success = DeleteAddress(None, wallet, self.watch_addr_str)
+        success = DeleteAddress(wallet, self.watch_addr_str)
 
         self.assertTrue(success)
 
         self.assertEqual(len(wallet.LoadWatchOnly()), 0)
 
     def test_3_import_token(self):
+        wallet = self.GetWallet1(recreate=True)
 
-        wallet = self.GetWallet1()
+        self.assertEqual(len(wallet.GetTokens()), 1)
 
-        self.assertEqual(len(wallet.GetTokens()), 0)
-
-        token_hash = 'f8d448b227991cf07cb96a6f9c0322437f1599b9'
+        token_hash = '31730cc9a1844891a3bafd1aa929a4142860d8d3'
 
         ImportToken(wallet, token_hash)
 
         token = list(wallet.GetTokens().values())[0]
 
-        self.assertEqual(token.name, 'NEP5 Standard')
-        self.assertEqual(token.symbol, 'NEP5')
+        self.assertEqual(token.name, 'NEX Template V4')
+        self.assertEqual(token.symbol, 'NXT4')
         self.assertEqual(token.decimals, 8)
-        self.assertEqual(token.Address, 'AYhE3Svuqdfh1RtzvE8hUhNR7HSpaSDFQg')
+        self.assertEqual(token.Address, 'Ab61S1rk2VtCVd3NtGNphmBckWk4cfBdmB')
 
     def test_4_get_synced_balances(self):
-        wallet = self.GetWallet1()
+        wallet = self.GetWallet1(recreate=True)
         synced_balances = wallet.GetSyncedBalances()
         self.assertEqual(len(synced_balances), 2)
 
     def test_5_show_unspent(self):
-
-        wallet = self.GetWallet1(True)
+        wallet = self.GetWallet1(recreate=True)
         unspents = ShowUnspentCoins(wallet, [])
         self.assertEqual(len(unspents), 2)
 
@@ -90,7 +85,7 @@ class UserWalletTestCase(WalletFixtureTestCase):
         unspents = ShowUnspentCoins(wallet, ['gas'])
         self.assertEqual(len(unspents), 1)
 
-        unspents = ShowUnspentCoins(wallet, ['APRgMZHZubii29UXF9uFa6sohrsYupNAvx'])
+        unspents = ShowUnspentCoins(wallet, ['AJQ6FoaSXDFzA6wLnyZ1nFN7SGSN2oNTc3'])
         self.assertEqual(len(unspents), 2)
 
         unspents = ShowUnspentCoins(wallet, ['AYhE3Svuqdfh1RtzvE8hUhNR7HSpaSDFQg'])
@@ -100,48 +95,52 @@ class UserWalletTestCase(WalletFixtureTestCase):
         self.assertEqual(len(unspents), 0)
 
     def test_6_split_unspent(self):
-
-        wallet = self.GetWallet1(True)
+        wallet = self.GetWallet1(recreate=True)
 
         # test bad
         tx = SplitUnspentCoin(wallet, [])
         self.assertEqual(tx, None)
 
         # bad inputs
-        tx = SplitUnspentCoin(wallet, ['APRgMZHZubii29UXF9uFa6sohrsYupNAvx', 'neo', 3, 2])
+        tx = SplitUnspentCoin(wallet, ['AJQ6FoaSXDFzA6wLnyZ1nFN7SGSN2oNTc3', 'neo', 3, 2])
         self.assertEqual(tx, None)
 
         # should be ok
-        tx = SplitUnspentCoin(wallet, ['APRgMZHZubii29UXF9uFa6sohrsYupNAvx', 'neo', 0, 2], prompt_passwd=False)
+        tx = SplitUnspentCoin(wallet, ['AJQ6FoaSXDFzA6wLnyZ1nFN7SGSN2oNTc3', 'neo', 0, 2], prompt_passwd=False)
         self.assertIsNotNone(tx)
 
         # rebuild wallet and try with non-even amount of neo, should be split into integer values of NEO
         wallet = self.GetWallet1(True)
-        tx = SplitUnspentCoin(wallet, ['APRgMZHZubii29UXF9uFa6sohrsYupNAvx', 'neo', 0, 3], prompt_passwd=False)
+        tx = SplitUnspentCoin(wallet, ['AJQ6FoaSXDFzA6wLnyZ1nFN7SGSN2oNTc3', 'neo', 0, 3], prompt_passwd=False)
         self.assertIsNotNone(tx)
 
-        self.assertEqual([Fixed8.FromDecimal(34), Fixed8.FromDecimal(34), Fixed8.FromDecimal(32)], [item.Value for item in tx.outputs])
+        self.assertEqual([Fixed8.FromDecimal(17), Fixed8.FromDecimal(17), Fixed8.FromDecimal(16)], [item.Value for item in tx.outputs])
 
         # try with gas
         wallet = self.GetWallet1(True)
-        tx = SplitUnspentCoin(wallet, ['APRgMZHZubii29UXF9uFa6sohrsYupNAvx', 'gas', 0, 3], prompt_passwd=False)
+        tx = SplitUnspentCoin(wallet, ['AJQ6FoaSXDFzA6wLnyZ1nFN7SGSN2oNTc3', 'gas', 0, 3], prompt_passwd=False)
         self.assertIsNotNone(tx)
 
     def test_7_create_address(self):
+        # no wallet
+        res = CreateAddress(None, 1)
+        self.assertFalse(res)
 
-        wallet = self.GetWallet1(True)
+        wallet = self.GetWallet1(recreate=True)
 
         # not specifying a number of addresses
-        CreateAddress(None, wallet, None)
-        self.assertEqual(len(wallet.Addresses), 1)
+        res = CreateAddress(wallet, None)
+        self.assertFalse(res)
 
-        # trying to create too many addresses
-        CreateAddress(None, wallet, 5)
-        self.assertEqual(len(wallet.Addresses), 1)
+        # bad args
+        res = CreateAddress(wallet, "blah")
+        self.assertFalse(res)
+
+        # negative value
+        res = CreateAddress(wallet, -1)
+        self.assertFalse(res)
 
         # should pass
-        success = CreateAddress(None, wallet, 1)
-        self.assertTrue(success)
-
-        # check the number of addresses
-        self.assertEqual(len(wallet.Addresses), 2)
+        res = CreateAddress(wallet, 2)
+        self.assertTrue(res)
+        self.assertEqual(len(wallet.Addresses), 3)

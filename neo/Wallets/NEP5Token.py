@@ -1,9 +1,6 @@
 import binascii
 import traceback
-
 from decimal import Decimal
-from logzero import logger
-
 from neo.Core.VerificationCode import VerificationCode
 from neocore.Cryptography.Crypto import Crypto
 from neocore.Fixed8 import Fixed8
@@ -13,6 +10,9 @@ from neocore.UInt160 import UInt160
 from neo.VM.ScriptBuilder import ScriptBuilder
 from neo.SmartContract.ApplicationEngine import ApplicationEngine
 from neo.Core.Mixins import SerializableMixin
+from neo.logging import log_manager
+
+logger = log_manager.getLogger()
 
 
 class NEP5Token(VerificationCode, SerializableMixin):
@@ -100,15 +100,15 @@ class NEP5Token(VerificationCode, SerializableMixin):
         except Exception as e:
             pass
 
-        if engine and len(engine.EvaluationStack.Items) == 3:
-            results = engine.EvaluationStack.Items
+        if engine and len(engine.ResultStack.Items) == 3:
+            results = engine.ResultStack.Items
 
             try:
                 self.name = results[0].GetString()
                 self.symbol = results[1].GetString()
                 self.decimals = results[2].GetBigInteger()
                 if len(self.name) > 1 and self.name != 'Stack Item' \
-                        and len(self.symbol) > 1 and self.symbol != 'Stack Item'\
+                        and len(self.symbol) > 1 and self.symbol != 'Stack Item' \
                         and self.decimals < 10:
                     return True
             except Exception as e:
